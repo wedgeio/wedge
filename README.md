@@ -1,13 +1,13 @@
 # BrowserIO
 
-TODO: Write a gem description
+Components for Ruby.
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'BrowserIO'
+gem 'browserio'
 ```
 
 And then execute:
@@ -16,11 +16,29 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install BrowserIO
+    $ gem install browserio
 
-## Usage
+## Basic Usage
 
-TODO: Write usage instructions here
+### Setup
+
+    class BasicComponent < BrowserIO::Component
+      setup do |config|
+        config.name :basic
+      end
+
+      def foo
+        'bar'
+      end
+    end
+
+### Call
+
+    Browser[:basic].foo
+
+### Response
+
+    'bar'
 
 ## Contributing
 

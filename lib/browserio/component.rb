@@ -1,24 +1,40 @@
-require 'browserio/config'
-
 module BrowserIO
   class Component
     class << self
+      # Stores the config instance.
+      #
+      # @return [Config]
       attr_accessor :config
 
+      # Used to setup the component with default options.
+      #
+      # @example
+      #   class SomeComponent < Component
+      #     setup do |config|
+      #       config.name :some
+      #     end
+      #   end
+      # @yield [Config]
       def setup(&block)
         @config ||= Config.new(klass: self)
 
         block.call config
 
-        components[settings[:name]] = config
+        components[opts[:name]] = opts
       end
 
+      # Shortcut for BrowserIO.components
+      #
+      # @return [Hash, BrowserIO.components]
       def components
-        Thread.current[:_browser_io_components] ||= {}
+        BrowserIO.components ||= {}
       end
 
-      def settings
-        config.settings
+      # Shortcut for the Config#opts
+      #
+      # @return [Openstruct, Config#opts]
+      def opts
+        config.opts
       end
     end
   end

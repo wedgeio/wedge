@@ -1,8 +1,8 @@
 require_relative 'test_helper'
 
 class BasicComponent < BrowserIO::Component
-  setup do |c|
-    c.name :basic
+  setup do |config|
+    config.name :basic
   end
 
   def foo
