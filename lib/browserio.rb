@@ -1,5 +1,9 @@
 require 'browserio/version'
 require 'browserio/opal'
+require 'nokogiri' unless RUBY_ENGINE == 'opal'
+require 'browserio/methods'
+require 'browserio/html'
+require 'browserio/dom'
 require 'browserio/config'
 require 'browserio/component'
 
@@ -48,9 +52,9 @@ module BrowserIO
       # @return [Array] List of opal paths.
       def append_paths
         @append_paths ||= begin
-          file = method(:components).source_location.first.sub('browserio.rb', '')
-          Opal.append_path file
-          Opal.append_path Dir.pwd
+          file = method(:components).source_location.first.sub('/browserio.rb', '')
+          BrowserIO::Opal.append_path file
+          BrowserIO::Opal.append_path Dir.pwd
         end
       end
     end

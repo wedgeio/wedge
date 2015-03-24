@@ -1,8 +1,14 @@
+require 'bundler'
+Bundler.setup :default, ENV.fetch('RACK_ENV') { 'development' }
+
 require 'minitest/autorun'
+require 'minitest/reporters'
 require 'browserio'
 
 require 'pry'
 require 'awesome_print'
+
+Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new # spec-like progress
 
 module Minitest
   class Test

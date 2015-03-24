@@ -2,6 +2,8 @@ require 'ostruct'
 
 module BrowserIO
   class Config
+    include Methods
+
     # Stores the options for the config
     #
     # @return [OpenStruct]
@@ -11,6 +13,10 @@ module BrowserIO
     #
     # @param opts [Hash] The initial params for #opts.
     def initialize(opts = {})
+      opts = {
+        tmpl: OpenStruct.new
+      }.merge opts
+
       @opts = OpenStruct.new(opts)
     end
 
@@ -18,7 +24,23 @@ module BrowserIO
     #
     # @param name [<String, Symbol>, #to_sym]
     def name(name)
-      @opts.name = name.to_sym
+      opts.name = name.to_sym
+      BrowserIO.components ||= {}
+      BrowserIO.components[opts.name] = opts
+    end
+
+    def dom
+      yield
+    end
+
+    def html(html)
+      return unless server?
+
+      opts.html = begin
+        File.read html
+      rescue
+        html
+      end.strip
     end
   end
 end
