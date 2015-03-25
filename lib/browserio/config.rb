@@ -1,4 +1,5 @@
 require 'ostruct'
+require 'browserio/events'
 
 module BrowserIO
   class Config
@@ -16,7 +17,8 @@ module BrowserIO
       opts = {
         tmpl: IndifferentHash.new,
         scope: false,
-        loaded: false
+        loaded: false,
+        events: Events.new
       }.merge opts
 
       @opts = OpenStruct.new(opts)

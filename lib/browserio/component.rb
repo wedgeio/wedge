@@ -2,6 +2,8 @@ module BrowserIO
   class Component
     include Methods
 
+    REJECTED_CLIENT_OPTS = %i(scope file_path methods_wrapped events)
+
     class << self
       alias_method :__new__, :new
 
@@ -20,6 +22,8 @@ module BrowserIO
         else
           obj.send :initialize, &block
         end
+
+        obj.bio_opts.events.scope = obj
 
         unless bio_opts.methods_wrapped
           obj.bio_opts.methods_wrapped = bio_opts.methods_wrapped = true
@@ -124,6 +128,10 @@ module BrowserIO
       end
       alias_method :config, :bio_config
 
+      def on(*args, &block)
+        bio_opts.events.add *args, &block
+      end
+
       def method_missing(method, *args, &block)
         if server? && bio_opts.scope.respond_to?(method, true)
           bio_opts.scope.send method, *args, &block
@@ -196,7 +204,7 @@ module BrowserIO
     def bio_javascript
       return unless server?
 
-      compiled_opts = Base64.encode64 bio_opts.to_h.reject {|k, v| %i(scope file_path methods_wrapped).include? k }.to_json
+      compiled_opts = Base64.encode64 bio_opts.to_h.reject {|k, v| REJECTED_CLIENT_OPTS.include? k }.to_json
       name          = bio_opts.file_path.gsub("#{Dir.pwd}/", '').gsub(/\.rb$/, '')
 
       javascript = <<-JS
@@ -205,6 +213,11 @@ module BrowserIO
       "<script>#{Opal.compile(javascript)}</script>"
     end
     alias_method :javscript, :bio_javascript
+
+    def bio_trigger *args
+      bio_opts.events.trigger *args
+    end
+    alias_method :trigger, :bio_trigger
 
     def method_missing(method, *args, &block)
       if server? && bio_opts.scope.respond_to?(method, true)

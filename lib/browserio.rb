@@ -1,6 +1,7 @@
 require 'browserio/opal'
 require 'browserio/version'
 require 'browserio/indifferent_hash'
+require 'browserio/hash'
 require 'base64'
 require 'nokogiri' unless RUBY_ENGINE == 'opal'
 require 'browserio/methods'
@@ -72,6 +73,7 @@ module BrowserIO
 
             comp = BrowserIO[options.delete(:name), options]
             comp.send(method_called, *method_args) if method_called
+            comp.bio_trigger :browser_events
           `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); });`
         end
       end

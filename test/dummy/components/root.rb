@@ -25,5 +25,9 @@ class DummyApp
         dom.find('#foo').before el
       end
     end
+
+    on :click, '#foo' do |el|
+      el.after '<div>bar</div>'
+    end
   end
 end
