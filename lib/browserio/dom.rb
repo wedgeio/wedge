@@ -85,7 +85,7 @@ module BrowserIO
       if server?
         node.inner_html = content
       else
-        content = content.dom if content.is_a? Roda::Component::DOM
+        content = content.dom if content.is_a? BrowserIO::DOM
         node.html content
       end
 
@@ -95,11 +95,17 @@ module BrowserIO
     if RUBY_ENGINE == 'opal'
       # make it supply the jquery element so it will use that as it doesn't
       # know how to handle the DOM element.
-      %w(append prepend replace_with after).each do |meth|
+      %w(append prepend replace_with after before).each do |meth|
         define_method meth do |obj|
-          obj = obj.dom if obj.is_a? Roda::Component::DOM
+          obj = obj.dom if obj.is_a? BrowserIO::DOM
           super obj
         end
+      end
+
+      def to_html
+        @dom ||= DOM.new '<div>'
+        el = dom.first
+        DOM.new('<div>').append(el).html
       end
     end
 

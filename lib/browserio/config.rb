@@ -14,7 +14,9 @@ module BrowserIO
     # @param opts [Hash] The initial params for #opts.
     def initialize(opts = {})
       opts = {
-        tmpl: OpenStruct.new
+        tmpl: IndifferentHash.new,
+        scope: false,
+        loaded: false
       }.merge opts
 
       @opts = OpenStruct.new(opts)
@@ -29,18 +31,29 @@ module BrowserIO
       BrowserIO.components[opts.name] = opts
     end
 
-    def dom
-      yield
+    %w(scope assets_url).each do |m|
+      define_method m do |v|
+        opts[m] = v
+      end
     end
 
-    def html(html)
-      return unless server?
+    # Used to set and update the dom
+    def dom
+      if server?
+        yield
+      end
+    end
 
-      opts.html = begin
-        File.read html
-      rescue
-        html
-      end.strip
+    # Set the raw html
+    # @param html [String]
+    def html(html)
+      unless RUBY_ENGINE == 'opal'
+        opts.html = begin
+          File.read html
+        rescue
+          html
+        end.strip
+      end
     end
   end
 end
