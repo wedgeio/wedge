@@ -29,7 +29,6 @@ class TestComponent < Minitest::Test
   end
 
   def test_returning_js
-    ap bio(:basic, :render_js).foo
-    assert bio(:basic, :render_js).foo[/opal/]
+    assert bio(:basic, :js).foo[/Opal/]
   end
 end
