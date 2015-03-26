@@ -20,7 +20,8 @@ module BrowserIO
         loaded: false,
         requires: [],
         on: [],
-        object_events: {}
+        object_events: {},
+        plugins: []
       }.merge opts
 
       @opts = OpenStruct.new(opts)
@@ -68,6 +69,14 @@ module BrowserIO
 
     def opts_dup
       opts.to_h.inject({}) {|copy, (key, value)| copy[key] = value.dup rescue value; copy}
+    end
+
+    def plugin(name)
+      requires :"#{name}_plugin"
+
+      unless RUBY_ENGINE == 'opal'
+        require "browserio/plugins/#{name}"
+      end
     end
   end
 end

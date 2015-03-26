@@ -42,7 +42,7 @@ module BrowserIO
       end
     end
 
-    def trigger name, options = {}
+    def trigger(name, options = {})
       name    = name.to_s
       options = options.indifferent
 

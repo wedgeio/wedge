@@ -2,7 +2,7 @@ module BrowserIO
   class Component
     include Methods
 
-    REJECTED_CLIENT_OPTS = %i(scope file_path methods_wrapped events klass on)
+    REJECTED_CLIENT_OPTS = %i(scope file_path methods_wrapped events klass on added_class_events)
 
     class << self
       alias_method :__new__, :new
@@ -21,9 +21,10 @@ module BrowserIO
         unless RUBY_ENGINE == 'opal'
           new_requires = []
           obj.bio_opts.requires.each do |r|
-            klass = BrowserIO.components[r.to_sym].klass
-            o = klass.client_bio_opts
-            o[:path_name] = klass.bio_opts.file_path.gsub("#{Dir.pwd}/", '').gsub(/\.rb$/, '')
+            klass         = BrowserIO.components[r.to_sym].klass
+            o             = klass.client_bio_opts
+            o[:path_name] = klass.bio_opts.path_name
+
             new_requires << o
           end
           obj.bio_opts.requires = new_requires
@@ -38,7 +39,7 @@ module BrowserIO
         bio_opts.added_class_events = true
 
         if obj.bio_opts.init && obj.method(:initialize).parameters.length > 0
-          obj.send :initialize, obj.bio_opts.init, &block
+          obj.send :initialize, *obj.bio_opts.init, &block
         else
           obj.send :initialize, &block
         end
@@ -139,6 +140,9 @@ module BrowserIO
 
           if RUBY_ENGINE == 'ruby'
             args[:file_path] = caller.first.gsub(/(?<=\.rb):.*/, '')
+            args[:path_name] = args[:file_path]
+              .gsub(%r{(#{Dir.pwd}/|.*(?=browserio))}, '')
+              .gsub(/\.rb$/, '')
           end
 
           Config.new(args)

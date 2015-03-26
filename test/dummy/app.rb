@@ -10,6 +10,7 @@ class DummyApp < Roda
   BrowserIO.setup do |c|
     c.scope self.new('')
     c.assets_url '/assets/bio'
+    c.plugin :form
   end
 
   def bio(*args)
@@ -49,4 +50,5 @@ class DummyApp < Roda
   end
 end
 
+Dir["#{ROOT_PATH}/forms/*.rb"].sort.each { |file| require file }
 Dir["#{ROOT_PATH}/components/*.rb"].sort.each { |file| require file }

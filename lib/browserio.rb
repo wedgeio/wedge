@@ -1,11 +1,13 @@
 require 'browserio/opal'
 require 'browserio/version'
-require 'browserio/indifferent_hash'
-require 'browserio/hash'
-require 'browserio/blank'
+require 'browserio/utilis/indifferent_hash'
+require 'browserio/utilis/hash'
+require 'browserio/utilis/blank'
+require 'browserio/utilis/methods'
+require 'browserio/utilis/try'
+require 'browserio/utilis/titleize'
 require 'base64'
 require 'nokogiri' unless RUBY_ENGINE == 'opal'
-require 'browserio/methods'
 require 'browserio/html'
 require 'browserio/dom'
 require 'browserio/config'
@@ -62,12 +64,21 @@ module BrowserIO
     # Return the opal javascript.
     def javascript(name = 'browserio', options = {})
       if server?
-        build(name, options).javascript
+        if name == 'browserio'
+          @bio_javascript ||= build(name, options).javascript
+        else
+          js = build(name, options).javascript
+          comp_name = components.to_h.select { |k, v| v.path_name == name }.first.last.name
+          comp = BrowserIO[comp_name]
+          options = comp.client_bio_opts
+          compiled_opts = Base64.encode64 options.to_json
+          js
+        end
       else
+        promise = Promise.new
+
         if !components[name.to_sym]
           components[name.to_sym] = 'loading'
-
-          promise = Promise.new
 
           assets_url = options[:assets_url]
 
@@ -75,32 +86,32 @@ module BrowserIO
             options[:loaded] = true
             method_called = options.delete(:method_called)
             method_args   = options.delete(:method_args)
-            requires      = options.delete(:requires)
+            name          = options.delete(:name)
+            comp          = BrowserIO[name, options]
+            requires      = comp.bio_opts.requires
 
             if requires.present? && requires.first.is_a?(Hash)
               comps = []
               requires.each do |o|
                 comps << -> do
-                  name = o.delete(:path_name)
-                  BrowserIO.javascript(name, o)
+                  path_name = o.delete(:path_name)
+                  BrowserIO.javascript(path_name, o)
                 end
               end
 
               Promise.when(*comps.map!(&:call)).then do |*args|
-                name = options.delete(:name)
-                comp = BrowserIO[name, options]
                 comp.send(method_called, *method_args) if method_called
                 comp.bio_trigger :browser_events
                 promise.resolve true
               end
             else
-              name = options.delete(:name)
-              comp = BrowserIO[name, options]
               comp.send(method_called, *method_args) if method_called
               comp.bio_trigger :browser_events
               promise.resolve true
             end
           `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); });`
+        else
+          promise.resolve true
         end
 
         promise
@@ -117,6 +128,7 @@ module BrowserIO
     #   end
     # @yield [Config]
     def setup(&block)
+      javascript # This pre-compiles the core and store it in mem
       block.call config
     end
 

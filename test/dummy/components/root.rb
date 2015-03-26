@@ -15,12 +15,7 @@ class DummyApp
     config.dom do
       dom.find('body') << assets(:js)
     end
-    config.requires :bar
-
-    def initialize
-      events = opts.events
-      # `console.log(events)`
-    end if client?
+    config.requires :bar, :foo_form
 
     def display
       if server?
