@@ -6,12 +6,12 @@ module BrowserIO
 
     def initialize
       @browser_events = []
-      @object_events  = []
+      @object_events  = {}
     end
 
     def add(*args, &block)
       event = {
-        name: args.shift.to_s,
+        name: args.shift,
         block: block,
         options: {}
       }
@@ -22,14 +22,23 @@ module BrowserIO
         elsif arg.is_a? Class
           event[:klass] = arg
         else
-          event[:options] = arg
+          event[:options] = event[:options].merge(arg).indifferent.to_h
         end
       end
 
-      if event[:name] == 'ready' || event[:name].is_a?(String) || event[:selector]
+      if event[:name].to_s == 'ready' || event[:name] =~ /[:\s]/ || event[:selector]
         browser_events << event
       else
-        object_events << event
+        event[:component] = scope.bio_opts.name
+
+        if !scope.class.bio_opts.added_class_events && for_component = event[:options].delete(:for)
+          bio_opts = BrowserIO.components[for_component].klass.bio_opts
+          events = bio_opts.object_events[event.delete(:name)] ||= []
+          events << event
+        else
+          events = object_events[event.delete(:name)] ||= []
+          events << event
+        end
       end
     end
 
@@ -46,6 +55,10 @@ module BrowserIO
           trigger_browser_event event
         end
       else
+        events = object_events[name] || []
+        events.each do |event|
+          BrowserIO[event[:component]].instance_exec options, &event[:block]
+        end
       end
     end
 
@@ -54,17 +67,17 @@ module BrowserIO
 
       case event[:name]
       when 'ready'
-        el = Element.find(selector != '' ? selector : 'body')
+        el = Element.find(event[:selector] != '' ? event[:selector] : 'body')
 
-        comp.instance_exec el, &block
+        comp.instance_exec el, &event[:block]
       when 'history_change'
         $window.history.change do |he|
-          comp.instance_exec he, &block
+          comp.instance_exec he, &event[:block]
         end
       when 'form'
-        warn 'missing form class option' unless form_klass
+        warn 'missing form class option' unless event[:klass]
 
-        Document.on :submit, selector do |evt|
+        Document.on :submit, event[:selector] do |evt|
           el = evt.current_target
           evt.prevent_default
 
@@ -92,14 +105,14 @@ module BrowserIO
           opts[:dom] = el
 
           if opts && key = opts[:key]
-            form = form_klass.new params_obj[key], opts
+            form = event[:klass].new params_obj[key], opts
           else
-            form = form_klass.new params_obj, opts
+            form = event[:klass].new params_obj, opts
           end
 
           el.find(opts[:error_selector] || '.field-error').remove
 
-          comp.instance_exec form, evt.current_target, evt, &block
+          comp.instance_exec form, evt.current_target, evt, &event[:block]
         end
       else
         args = [event[:name]]
@@ -114,8 +127,8 @@ module BrowserIO
         end
 
         if event[:name] =~ /ready/
-          el = Element.find(selector != '' ? selector : 'body')
-          comp.instance_exec el, &block
+          el = Element.find(event[:selector] != '' ? event[:selector] : 'body')
+          comp.instance_exec el, &event[:block]
         end
       end
     end

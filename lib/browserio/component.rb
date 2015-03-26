@@ -2,7 +2,7 @@ module BrowserIO
   class Component
     include Methods
 
-    REJECTED_CLIENT_OPTS = %i(scope file_path methods_wrapped events)
+    REJECTED_CLIENT_OPTS = %i(scope file_path methods_wrapped events klass on)
 
     class << self
       alias_method :__new__, :new
@@ -17,13 +17,31 @@ module BrowserIO
         # Merge other args into opts
         args.each { |a| a.each {|k, v| obj.bio_opts[k] = v } } if client?
 
+        # Set all the requires
+        unless RUBY_ENGINE == 'opal'
+          new_requires = []
+          obj.bio_opts.requires.each do |r|
+            klass = BrowserIO.components[r.to_sym].klass
+            o = klass.client_bio_opts
+            o[:path_name] = klass.bio_opts.file_path.gsub("#{Dir.pwd}/", '').gsub(/\.rb$/, '')
+            new_requires << o
+          end
+          obj.bio_opts.requires = new_requires
+        end
+
+        obj.bio_opts.events.scope = obj
+
+        # Set all the on events
+        obj.bio_opts.on.each do |*a, &block|
+          obj.bio_opts.events.add(*a.first.first, &a.first.last)
+        end
+        bio_opts.added_class_events = true
+
         if obj.bio_opts.init && obj.method(:initialize).parameters.length > 0
           obj.send :initialize, obj.bio_opts.init, &block
         else
           obj.send :initialize, &block
         end
-
-        obj.bio_opts.events.scope = obj
 
         unless bio_opts.methods_wrapped
           obj.bio_opts.methods_wrapped = bio_opts.methods_wrapped = true
@@ -117,7 +135,7 @@ module BrowserIO
 
       def bio_config
         @bio_config ||= begin
-          args = BrowserIO.opts.to_h.merge(klass: self)
+          args = BrowserIO.config.opts_dup.merge(klass: self, object_events: {})
 
           if RUBY_ENGINE == 'ruby'
             args[:file_path] = caller.first.gsub(/(?<=\.rb):.*/, '')
@@ -129,7 +147,7 @@ module BrowserIO
       alias_method :config, :bio_config
 
       def on(*args, &block)
-        bio_opts.events.add *args, &block
+        bio_opts.on << [args, block]
       end
 
       def method_missing(method, *args, &block)
@@ -139,12 +157,21 @@ module BrowserIO
           super
         end
       end
+
+      def client_bio_opts
+        bio_config.opts_dup.reject {|k, v| REJECTED_CLIENT_OPTS.include? k }
+      end
     end
 
     # Duplicate of class condig [Config]
     # @return config [Config]
     def bio_config
-      @bio_config ||= Config.new(self.class.bio_config.opts.to_h)
+      @bio_config ||= begin
+        c = Config.new(self.class.bio_config.opts_dup.merge(events: Events.new))
+        c.opts.events.object_events = c.opts.object_events.dup
+        c.opts.object_events = {}
+        c
+      end
     end
     alias_method :config, :bio_config
 
@@ -204,7 +231,7 @@ module BrowserIO
     def bio_javascript
       return unless server?
 
-      compiled_opts = Base64.encode64 bio_opts.to_h.reject {|k, v| REJECTED_CLIENT_OPTS.include? k }.to_json
+      compiled_opts = Base64.encode64 client_bio_opts.to_json
       name          = bio_opts.file_path.gsub("#{Dir.pwd}/", '').gsub(/\.rb$/, '')
 
       javascript = <<-JS
@@ -213,6 +240,11 @@ module BrowserIO
       "<script>#{Opal.compile(javascript)}</script>"
     end
     alias_method :javscript, :bio_javascript
+
+    def client_bio_opts
+      bio_config.opts_dup.reject {|k, v| REJECTED_CLIENT_OPTS.include? k }
+    end
+    alias_method :client_opts, :client_bio_opts
 
     def bio_trigger *args
       bio_opts.events.trigger *args

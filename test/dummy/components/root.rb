@@ -15,6 +15,12 @@ class DummyApp
     config.dom do
       dom.find('body') << assets(:js)
     end
+    config.requires :bar
+
+    def initialize
+      events = opts.events
+      # `console.log(events)`
+    end if client?
 
     def display
       if server?
@@ -26,8 +32,13 @@ class DummyApp
       end
     end
 
+    on :ready do
+      puts 'dom ready'
+    end
+
     on :click, '#foo' do |el|
       el.after '<div>bar</div>'
+      trigger :clicked_foo
     end
   end
 end

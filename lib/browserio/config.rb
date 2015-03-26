@@ -18,7 +18,9 @@ module BrowserIO
         tmpl: IndifferentHash.new,
         scope: false,
         loaded: false,
-        events: Events.new
+        requires: [],
+        on: [],
+        object_events: {}
       }.merge opts
 
       @opts = OpenStruct.new(opts)
@@ -56,6 +58,16 @@ module BrowserIO
           html
         end.strip
       end
+    end
+
+    def requires(*args)
+      unless RUBY_ENGINE == 'opal'
+        args.each { |a| opts.requires << a }
+      end
+    end
+
+    def opts_dup
+      opts.to_h.inject({}) {|copy, (key, value)| copy[key] = value.dup rescue value; copy}
     end
   end
 end

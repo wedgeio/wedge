@@ -2,6 +2,7 @@ require 'browserio/opal'
 require 'browserio/version'
 require 'browserio/indifferent_hash'
 require 'browserio/hash'
+require 'browserio/blank'
 require 'base64'
 require 'nokogiri' unless RUBY_ENGINE == 'opal'
 require 'browserio/methods'
@@ -63,19 +64,46 @@ module BrowserIO
       if server?
         build(name, options).javascript
       else
-        if !components[name]
+        if !components[name.to_sym]
+          components[name.to_sym] = 'loading'
+
+          promise = Promise.new
+
           assets_url = options[:assets_url]
 
           `$.getScript("" + assets_url + "/" + name + ".js").done(function(){`
             options[:loaded] = true
-            method_called    = options.delete(:method_called)
-            method_args      = options.delete(:method_args)
+            method_called = options.delete(:method_called)
+            method_args   = options.delete(:method_args)
+            requires      = options.delete(:requires)
 
-            comp = BrowserIO[options.delete(:name), options]
-            comp.send(method_called, *method_args) if method_called
-            comp.bio_trigger :browser_events
+            if requires.present? && requires.first.is_a?(Hash)
+              comps = []
+              requires.each do |o|
+                comps << -> do
+                  name = o.delete(:path_name)
+                  BrowserIO.javascript(name, o)
+                end
+              end
+
+              Promise.when(*comps.map!(&:call)).then do |*args|
+                name = options.delete(:name)
+                comp = BrowserIO[name, options]
+                comp.send(method_called, *method_args) if method_called
+                comp.bio_trigger :browser_events
+                promise.resolve true
+              end
+            else
+              name = options.delete(:name)
+              comp = BrowserIO[name, options]
+              comp.send(method_called, *method_args) if method_called
+              comp.bio_trigger :browser_events
+              promise.resolve true
+            end
           `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); });`
         end
+
+        promise
       end
     end
 
