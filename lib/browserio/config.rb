@@ -72,11 +72,37 @@ module BrowserIO
     end
 
     def plugin(name)
-      requires :"#{name}_plugin"
-
       unless RUBY_ENGINE == 'opal'
         require "browserio/plugins/#{name}"
       end
+    end
+
+    def get_requires(requires = false, previous_requires = [])
+      list = []
+
+      unless requires
+        requires ||= opts.requires.dup
+        previous_requires << opts.name.to_sym
+      end
+
+      previous_requires.each { |p| requires.delete(p) }
+
+      requires.each do |r|
+        klass = BrowserIO.components[r.to_sym].klass
+        o = klass.client_bio_opts.select do |k, v|
+          %w(path_name name assets_url requires).include? k.to_s
+        end
+
+        # We don't want to get a stack limit error so we stop something
+        # requiring itself
+        pr = previous_requires.dup << o[:name].to_sym
+
+        o[:requires] = get_requires o[:requires].dup, pr if o[:requires].present?
+
+        list << o
+      end
+
+      list
     end
   end
 end

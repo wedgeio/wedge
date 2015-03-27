@@ -78,13 +78,15 @@ module BrowserIO
       else
         promise = Promise.new
 
-        if !components[name.to_sym]
-          components[name.to_sym] = 'loading'
+        opts.loaded ||= {}
+
+        if !opts.loaded.keys.include? name
+          opts.loaded[name] = false
 
           assets_url = options[:assets_url]
 
           `$.getScript("" + assets_url + "/" + name + ".js").done(function(){`
-            options[:loaded] = true
+            BrowserIO.opts.loaded[name] = true
             method_called = options.delete(:method_called)
             method_args   = options.delete(:method_args)
             name          = options.delete(:name)
@@ -95,8 +97,17 @@ module BrowserIO
               comps = []
               requires.each do |o|
                 comps << -> do
-                  path_name = o.delete(:path_name)
-                  BrowserIO.javascript(path_name, o.reject { |k, v| k.to_s == 'requires'})
+                  c = []
+                  o[:requires].each do |oo|
+                    c << -> do
+                      path_name = oo.delete(:path_name)
+                      BrowserIO.javascript(path_name, oo.reject { |k, v| k.to_s == 'requires'})
+                    end
+                  end
+                  Promise.when(*c.map!(&:call)).then do |*args|
+                    path_name = o.delete(:path_name)
+                    BrowserIO.javascript(path_name, o.reject { |k, v| k.to_s == 'requires'})
+                  end
                 end
               end
 
@@ -112,6 +123,10 @@ module BrowserIO
             end
           `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); });`
         else
+          unless BrowserIO.opts.loaded[name]
+            # block until file is loaded via ajax request
+          end
+
           promise.resolve true
         end
 

@@ -19,21 +19,13 @@ module BrowserIO
 
         # Set all the requires
         unless RUBY_ENGINE == 'opal'
-          new_requires = []
-          obj.bio_opts.requires.each do |r|
-            klass         = BrowserIO.components[r.to_sym].klass
-            o             = klass.client_bio_opts
-            o[:path_name] = klass.bio_opts.path_name
-
-            new_requires << o
-          end
-          obj.bio_opts.requires = new_requires
+          obj.bio_opts.requires = obj.bio_config.get_requires
         end
 
         obj.bio_opts.events.scope = obj
 
         # Set all the on events
-        obj.bio_opts.on.each do |*a, &block|
+        obj.bio_opts.on.each do |*a, &b|
           obj.bio_opts.events.add(*a.first.first, &a.first.last)
         end
         bio_opts.added_class_events = true
