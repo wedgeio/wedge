@@ -72,6 +72,7 @@ module BrowserIO
           comp = BrowserIO[comp_name]
           options = comp.client_bio_opts
           compiled_opts = Base64.encode64 options.to_json
+          js << Opal.compile("BrowserIO.components[:#{comp_name}].klass.instance_variable_set(:@bio_config, BrowserIO::Config.new(BrowserIO.components[:#{comp_name}].klass.bio_config.opts_dup.merge(JSON.parse(Base64.decode64('#{compiled_opts}')))))")
           js
         end
       else
@@ -95,7 +96,7 @@ module BrowserIO
               requires.each do |o|
                 comps << -> do
                   path_name = o.delete(:path_name)
-                  BrowserIO.javascript(path_name, o)
+                  BrowserIO.javascript(path_name, o.reject { |k, v| k.to_s == 'requires'})
                 end
               end
 
