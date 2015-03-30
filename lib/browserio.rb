@@ -62,7 +62,7 @@ module BrowserIO
     end
 
     # Return the opal javascript.
-    def javascript(name = 'browserio', options = {})
+    def javascript(name = 'browserio', options = {}, promise = false)
       if server?
         if name == 'browserio'
           @bio_javascript ||= build(name, options).javascript
@@ -76,8 +76,6 @@ module BrowserIO
           js
         end
       else
-        promise = Promise.new
-
         opts.loaded ||= {}
 
         if !opts.loaded.keys.include? name
@@ -95,43 +93,62 @@ module BrowserIO
 
             if requires.present? && requires.first.is_a?(Hash)
               comps = []
-              requires.each do |o|
-                comps << -> do
-                  c = []
-                  o[:requires].each do |oo|
-                    c << -> do
-                      path_name = oo.delete(:path_name)
-                      BrowserIO.javascript(path_name, oo.reject { |k, v| k.to_s == 'requires'})
-                    end
-                  end
-                  Promise.when(*c.map!(&:call)).then do |*args|
-                    path_name = o.delete(:path_name)
-                    BrowserIO.javascript(path_name, o.reject { |k, v| k.to_s == 'requires'})
-                  end
-                end
-              end
 
-              Promise.when(*comps.map!(&:call)).then do |*args|
+              ::Opal::Promise.when(*get_requires(requires, comps)).then do
                 comp.send(method_called, *method_args) if method_called
                 comp.bio_trigger :browser_events
-                promise.resolve true
               end
             else
               comp.send(method_called, *method_args) if method_called
               comp.bio_trigger :browser_events
-              promise.resolve true
             end
+
+            promise.resolve true if promise
           `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); });`
-        else
-          unless BrowserIO.opts.loaded[name]
-            # block until file is loaded via ajax request
+        end
+      end
+    end
+
+    def get_requires requires, reqs = [], from_get = false
+      promises = []
+
+      requires.each do |r|
+        if r[:requires].any?
+          promises << (promise = ::Opal::Promise.new)
+
+          a = []
+          c = []
+
+          get_requires(r[:requires], a, true)
+
+          a.each do |re|
+            c << -> do
+              p = ::Opal::Promise.new
+
+              path_name = re.delete(:path_name)
+              BrowserIO.javascript(path_name, re.reject { |k, v| k.to_s == 'requires'}, p)
+
+              p
+            end
           end
 
-          promise.resolve true
-        end
+          ::Opal::Promise.when(*c.map!(&:call)).then do |*args|
+            path_name = r.delete(:path_name)
+            BrowserIO.javascript(path_name, r.reject { |k, v| k.to_s == 'requires'}, promise)
+          end
+        else
+          reqs << r
 
-        promise
+          if !from_get
+            promises << (promise = ::Opal::Promise.new)
+
+            path_name = r.delete(:path_name)
+            BrowserIO.javascript(path_name, r.reject { |k, v| k.to_s == 'requires'}, promise)
+          end
+        end
       end
+
+      promises
     end
 
     # Used to setup the component with default options.
