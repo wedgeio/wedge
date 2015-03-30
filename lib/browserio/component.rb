@@ -137,7 +137,18 @@ module BrowserIO
               .gsub(/\.rb$/, '')
           end
 
-          Config.new(args)
+          c = Config.new(args)
+
+          # If extending from a plugin it will automatically require it.
+          ancestors.each do |klass|
+            next if klass.to_s == name.to_s
+
+            if klass.method_defined?(:bio_opts) && klass.bio_opts.name.to_s =~ /_plugin$/
+              c.requires klass.bio_opts.name
+            end
+          end
+
+          c
         end
       end
       alias_method :config, :bio_config
