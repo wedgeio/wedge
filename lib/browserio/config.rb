@@ -63,7 +63,12 @@ module BrowserIO
 
     def requires(*args)
       unless RUBY_ENGINE == 'opal'
-        args.each { |a| opts.requires << a }
+        args.each do |a|
+          if a.to_s[/_plugin$/]
+            require "browserio/plugins/#{a.to_s.gsub(/_plugin$/, '')}"
+          end
+          opts.requires << a
+        end
       end
     end
 
