@@ -32,11 +32,13 @@ module BrowserIO
     # Set the unique name of the component
     #
     # @param name [<String, Symbol>, #to_sym]
-    def name(name)
-      opts.name = name.to_sym
-      opts.is_plugin = true if name.to_s =~ /_plugin$/
-      BrowserIO.components ||= {}
-      BrowserIO.components[opts.name] = opts
+    def name(*names)
+      names.each do |name|
+        opts.name = name.to_sym
+        opts.is_plugin = true if name.to_s =~ /_plugin$/
+        BrowserIO.components ||= {}
+        BrowserIO.components[opts.name] = opts
+      end
     end
 
     def is_plugin?
@@ -86,6 +88,9 @@ module BrowserIO
     def plugin(name)
       unless RUBY_ENGINE == 'opal'
         require "browserio/plugins/#{name}"
+        klass = BrowserIO.components[:"#{name}_plugin"].klass
+        BrowserIO::Component.include(klass::InstanceMethods) if defined?(klass::InstanceMethods)
+        BrowserIO::Component.extend(klass::ClassMethods) if defined?(klass::ClassMethods)
       end
     end
 

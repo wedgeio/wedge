@@ -44,7 +44,7 @@ module BrowserIO
           public_instance_methods(false).each do |meth|
             alias_method :"bio_original_#{meth}", :"#{meth}"
             define_method "#{meth}" do |*d_args, &blk|
-              if bio_opts.js
+              if server? && bio_opts.js
                 bio_opts.method_called = meth
                 bio_opts.method_args   = *d_args
               end
@@ -60,7 +60,7 @@ module BrowserIO
               # Append the initialize javscript
               if server? && opts.js
                 result = result.to_html if result.is_a? DOM
-                result << bio_javascript
+                result << bio_javascript if result.is_a? String
               end
 
               result
@@ -190,7 +190,7 @@ module BrowserIO
               # event_id = "comp-event-#{$faye.generate_id}"
 
               payload = client_bio_opts.reject do |k, _|
-                %w(html tmpl requires plugins object_events).include? k
+                %w(html tmpl requires plugins object_events js_loaded).include? k
               end
               payload[:method_called] = meth
               payload[:method_args]   = args

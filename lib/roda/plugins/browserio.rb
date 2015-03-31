@@ -15,7 +15,11 @@ class Roda
           when 'plugins'
             v.each { |p| ::BrowserIO.config.plugin p }
           when 'scope'
-            ::BrowserIO.config.scope v.new
+            begin
+              ::BrowserIO.config.scope v.new
+            rescue
+              ::BrowserIO.config.scope v.new('')
+            end
           else
             ::BrowserIO.config.send(k, v)
           end
@@ -63,7 +67,7 @@ class Roda
               method_called = data.delete(:method_called)
               method_args   = data.delete(:method_args)
 
-              res = scope.bio(name, data).send(method_called, *method_args)
+              res = scope.bio(name, data).send(method_called, *method_args) || ''
 
               scope.response.headers["BIO-CSRF-TOKEN"] = scope.csrf_token if scope.methods.include? :csrf_token
 

@@ -10,7 +10,7 @@ module BrowserIO
       end
 
       def server?
-        RUBY_ENGINE == 'ruby'
+        !client?
       end
     end
 

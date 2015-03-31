@@ -336,6 +336,94 @@ module BrowserIO
       def empty?
         _attributes.empty?
       end
+
+      module InstanceMethods
+        def render_fields data, options = {}
+          data = data.is_a?(Hash) ? data.to_obj : data
+
+          l_dom = options[:dom] || dom
+
+          l_dom.find("[data-if]") do |field_dom|
+            value = get_value_for field_dom['data-if'], data
+
+            unless value.present?
+              field_dom.remove
+            end
+          end
+
+          l_dom.find("[data-unless]") do |field_dom|
+            value = get_value_for field_dom['data-unless'], data
+
+            if value.present?
+              field_dom.remove
+            end
+          end
+
+          l_dom.find("[data-field]") do |field_dom|
+            if field = field_dom['data-field']
+              value = get_value_for field, data
+
+              if !value.nil?
+                value = value.to_s
+
+                if value != value.upcase && !value.match(BrowserIO::Plugins::Form::EMAIL)
+                  field_value = value.titleize
+                else
+                  field_value = value
+                end
+
+                field_value = 'No'  if field_value == 'False'
+                field_value = 'Yes' if field_value == 'True'
+
+                field_dom.html = field_value
+              else
+                field_dom.html = ''
+              end
+            end
+          end
+
+          l_dom
+        end
+
+        def get_value_for field, data
+          field = (field || '').split '.'
+
+          if field.length > 1
+            value = data.is_a?(Hash) ? data.to_obj : data
+
+            field.each_with_index do |f, i|
+              # might not have the parent object
+              if (value.respond_to?('empty?') ? value.empty? : !value.present?)
+                value = ''
+                next
+              end
+
+              if (i+1) < field.length
+                begin
+                  value = value.send(f)
+                rescue
+                  value = nil
+                end
+              else
+                begin
+                  value = value.respond_to?(:present) ? value.present("print_#{f}") : value.send(f)
+                rescue
+                  value = nil
+                end
+              end
+
+            end
+          else
+            begin
+              value = data.respond_to?(:present) ? data.present("print_#{field.first}") : data.send(field.first)
+            rescue
+              value = nil
+            end
+          end
+
+          value
+        end
+      end
     end
   end
 end
