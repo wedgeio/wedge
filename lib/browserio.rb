@@ -83,7 +83,7 @@ module BrowserIO
 
           assets_url = options[:assets_url]
 
-          `$.getScript("" + assets_url + "/" + name + ".js").done(function(){`
+          `$.getScript("/" + assets_url + "/" + name + ".js").done(function(){`
             BrowserIO.opts.loaded[name] = true
             method_called = options.delete(:method_called)
             method_args   = options.delete(:method_args)

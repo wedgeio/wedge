@@ -10,7 +10,6 @@ class Roda
 
         opts = app.opts[:browserio]
 
-
         opts.each do |k, v|
           case k.to_s
           when 'plugins'
@@ -34,7 +33,7 @@ class Roda
 
       module RequestClassMethods
         def bio_route_regex
-          %r{assets/bio/(.*)\.(.*)$}
+          %r{#{roda_class.opts[:browserio][:assets_url]}/(.*)\.(.*)$}
         end
       end
 
