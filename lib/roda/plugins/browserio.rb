@@ -15,7 +15,7 @@ class Roda
           when 'plugins'
             v.each { |p| ::BrowserIO.config.plugin p }
           when 'scope'
-            ::BrowserIO.config.scope v.new('')
+            ::BrowserIO.config.scope v.new
           else
             ::BrowserIO.config.send(k, v)
           end
@@ -27,8 +27,6 @@ class Roda
           args << { scope: self }
           ::BrowserIO[*args]
         end
-        alias_method :comp, :bio unless defined? comp
-        alias_method :component, :bio unless defined? component
       end
 
       module RequestClassMethods

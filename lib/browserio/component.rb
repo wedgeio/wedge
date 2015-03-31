@@ -15,7 +15,7 @@ module BrowserIO
         obj.bio_opts.init = args.delete(:init)
 
         # Merge other args into opts
-        args.each { |a| a.each {|k, v| obj.bio_opts[k] = v } } if client?
+        args.each { |a| a.each {|k, v| obj.bio_opts[k] = v } }
 
         # Set all the requires
         unless RUBY_ENGINE == 'opal'
@@ -41,7 +41,7 @@ module BrowserIO
 
           public_instance_methods(false).each do |meth|
             alias_method :"bio_original_#{meth}", :"#{meth}"
-            define_method "#{meth}" do |*d_args|
+            define_method "#{meth}" do |*d_args, &block|
               if bio_opts.js
                 bio_opts.method_called = meth
                 bio_opts.method_args   = *d_args
