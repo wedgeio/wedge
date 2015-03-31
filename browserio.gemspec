@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = BrowserIO::VERSION
   spec.authors       = ["cj"]
   spec.email         = ["cjlazell@gmail.com"]
-  spec.summary       = %q{TODO: Write a short summary. Required.}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
+  spec.summary       = %q{Components for the Browser and Server}
+  spec.description   = %q{Components for the Browser and Server}
   spec.homepage      = ""
   spec.license       = "MIT"
 
