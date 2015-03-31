@@ -15,7 +15,7 @@ module BrowserIO
         obj.bio_opts.init = args.delete(:init)
 
         # Merge other args into opts
-        args.each { |a| a.each {|k, v| obj.bio_opts[k] = v } }
+        args.each { |a| a.each {|k, v| obj.bio_opts[k] = v } } if args.any?
 
         # Set all the requires
         unless RUBY_ENGINE == 'opal'
@@ -30,7 +30,7 @@ module BrowserIO
         end
         bio_opts.added_class_events = true
 
-        if obj.bio_opts.init && obj.method(:initialize).parameters.length > 0
+        if obj.bio_opts.init
           obj.send :initialize, *obj.bio_opts.init, &block
         else
           obj.send :initialize, &block
@@ -88,7 +88,7 @@ module BrowserIO
       # @example
       #   tmpl :some_name, dom.find('#some-div')
       # @return dom [DOM]
-      def bio_tmpl(name, dom = false, remove = false)
+      def bio_tmpl(name, dom = false, remove = true)
         if dom
           dom = remove ? dom.remove : dom
           bio_opts.tmpl[name] = {
@@ -158,7 +158,7 @@ module BrowserIO
       end
 
       def method_missing(method, *args, &block)
-        if server? && bio_opts.scope.respond_to?(method, true)
+        if bio_opts.scope.respond_to?(method, true)
           bio_opts.scope.send method, *args, &block
         else
           super
@@ -258,8 +258,14 @@ module BrowserIO
     end
     alias_method :trigger, :bio_trigger
 
+    if RUBY_ENGINE == 'opal'
+      def bio(*args)
+        BrowserIO[*args]
+      end
+    end
+
     def method_missing(method, *args, &block)
-      if server? && bio_opts.scope.respond_to?(method, true)
+      if bio_opts.scope.respond_to?(method, true)
         bio_opts.scope.send method, *args, &block
       else
         super

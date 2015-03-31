@@ -21,6 +21,7 @@ module BrowserIO
         requires: [],
         on: [],
         object_events: {},
+        is_plugin: false,
         plugins: []
       }.merge opts
 
@@ -32,8 +33,13 @@ module BrowserIO
     # @param name [<String, Symbol>, #to_sym]
     def name(name)
       opts.name = name.to_sym
+      opts.is_plugin = true if name.to_s =~ /_plugin$/
       BrowserIO.components ||= {}
       BrowserIO.components[opts.name] = opts
+    end
+
+    def is_plugin?
+      opts.is_plugin
     end
 
     %w(scope assets_url).each do |m|
