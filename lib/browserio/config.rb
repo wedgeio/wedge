@@ -20,6 +20,7 @@ module BrowserIO
         loaded: false,
         requires: [],
         on: [],
+        on_server_methods: [],
         object_events: {},
         is_plugin: false,
         plugins: []
