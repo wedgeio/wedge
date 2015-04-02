@@ -1,5 +1,5 @@
 class DummyApp
-  class RootComponent < BrowserIO::Component
+  class RootComponent < BaseComponent
     config.name :root
     config.html <<-HTML
       <!DOCTYPE html>
@@ -15,7 +15,7 @@ class DummyApp
     config.dom do
       dom.find('body') << assets(:js)
     end
-    config.requires :bar, :foo_form, :pjax_plugin
+    config.requires :base, :bar, :foo_form, :pjax_plugin
 
     def display
       if server?

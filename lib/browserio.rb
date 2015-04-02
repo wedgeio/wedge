@@ -102,6 +102,7 @@ module BrowserIO
         name          = options.delete(:name)
         reqs          = BrowserIO.requires[name.to_sym].dup
 
+        `console.log(reqs)`
         if !opts.loaded.keys.include? path_name
           opts.loaded[path_name] = false
 
@@ -136,6 +137,8 @@ module BrowserIO
       promises = []
 
       reqs.each do |r|
+        r = r.dup
+
         promises << (promise = (r[:promise] ||= Promise.new))
 
         if r[:requires].any?

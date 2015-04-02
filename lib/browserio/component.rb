@@ -127,7 +127,7 @@ module BrowserIO
         @bio_config ||= begin
           args = BrowserIO.config.opts_dup.merge(klass: self, object_events: {})
 
-          if server?
+          unless RUBY_ENGINE == 'opal'
             args[:file_path] = caller.first.gsub(/(?<=\.rb):.*/, '')
             args[:path_name] = args[:file_path]
               .gsub(%r{(#{Dir.pwd}/|.*(?=browserio))}, '')
