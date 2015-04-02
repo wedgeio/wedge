@@ -1,5 +1,5 @@
 class DummyApp
-  class RootComponent < BaseComponent
+  class BaseComponent < BrowserIO::Component
     config.name :base
   end
 end
