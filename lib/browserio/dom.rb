@@ -43,7 +43,7 @@ module BrowserIO
       node
     end
 
-    if RUBY_ENGINE == 'ruby'
+    unless RUBY_ENGINE == 'opal'
       def data key = false, value = false
         d = Hash[node.xpath("@*[starts-with(name(), 'data-')]").map{|a| [a.name, a.value]}]
 

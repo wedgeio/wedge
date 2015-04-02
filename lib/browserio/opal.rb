@@ -1,7 +1,7 @@
 require 'opal'
 require 'opal-jquery'
 
-if RUBY_ENGINE == 'ruby'
+unless RUBY_ENGINE == 'opal'
   module Opal
     class Builder
       # @return [String] Compiled javascript.

@@ -40,7 +40,7 @@ module BrowserIO
       @components ||= OpenStruct.new
     end
 
-    if RUBY_ENGINE == 'ruby'
+    unless RUBY_ENGINE == 'opal'
       # Returns the build object for opal.
       #
       # @param path [String] require path to file to build.
