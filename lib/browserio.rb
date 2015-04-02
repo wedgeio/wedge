@@ -21,6 +21,8 @@ module BrowserIO
   include Methods
 
   class << self
+    attr_accessor :requires
+
     # Used to call a component.
     #
     # @example
@@ -66,13 +68,25 @@ module BrowserIO
     end
 
     # Return the opal javascript.
-    def javascript(name = 'browserio', options = {}, promise = false)
+    def javascript(path_name = 'browserio', options = {}, promise = false)
       if server?
-        if name == 'browserio'
-          @bio_javascript ||= build(name, options).javascript
+        if path_name == 'browserio'
+          @bio_javascript ||= begin
+            requires = {}
+
+            components.to_h.each do |k, v|
+              requires[k] = v.klass.bio_config.get_requires
+            end
+
+            compiled_requires = Base64.encode64 requires.to_json
+
+            js = build(path_name, options).javascript
+            js << Opal.compile("BrowserIO.instance_variable_set(:@requires, JSON.parse(Base64.decode64('#{compiled_requires}')))")
+            js
+          end
         else
-          js = build(name, options).javascript
-          comp_name = components.to_h.select { |k, v| v.path_name == name }.first.last.name
+          js = build(path_name, options).javascript
+          comp_name = components.to_h.select { |k, v| v.path_name == path_name }.first.last.name
           comp = BrowserIO[comp_name]
           options = comp.client_bio_opts
           compiled_opts = Base64.encode64 options.to_json
@@ -82,73 +96,56 @@ module BrowserIO
       else
         opts.loaded ||= {}
 
-        if !opts.loaded.keys.include? name
-          opts.loaded[name] = false
+        assets_url    = options[:assets_url]
+        method_called = options.delete(:method_called)
+        method_args   = options.delete(:method_args)
+        name          = options.delete(:name)
+        reqs          = BrowserIO.requires[name.to_sym].dup
 
-          assets_url = options[:assets_url]
+        if !opts.loaded.keys.include? path_name
+          opts.loaded[path_name] = false
 
-          `$.getScript("/" + assets_url + "/" + name + ".js").done(function(){`
-            BrowserIO.opts.loaded[name] = true
-            method_called = options.delete(:method_called)
-            method_args   = options.delete(:method_args)
-            name          = options.delete(:name)
-            comp          = BrowserIO[name, options]
-            requires      = comp.bio_opts.requires
+          if reqs.present? && reqs.first.is_a?(Hash)
+            ::Opal::Promise.when(*get_requires(reqs)).then do
+              `$.getScript("/" + assets_url + "/" + path_name + ".js").done(function(){`
+                opts.loaded[path_name] = true
 
-            if requires.present? && requires.first.is_a?(Hash)
-              comps = []
-
-              ::Opal::Promise.when(*get_requires(requires, comps)).then do
+                comp = BrowserIO[name, options]
                 comp.send(method_called, *method_args) if method_called
                 comp.bio_trigger :browser_events
-              end
-            else
+
+                promise.resolve true if promise
+              `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); });`
+            end
+          else
+            `$.getScript("/" + assets_url + "/" + path_name + ".js").done(function(){`
+              opts.loaded[path_name] = true
+
+              comp = BrowserIO[name, options]
               comp.send(method_called, *method_args) if method_called
               comp.bio_trigger :browser_events
-            end
 
-            promise.resolve true if promise
-          `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); });`
+              promise.resolve true if promise
+            `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); });`
+          end
         end
       end
     end
 
-    def get_requires requires, reqs = [], from_get = false
+    def get_requires reqs
       promises = []
 
-      requires.each do |r|
+      reqs.each do |r|
+        promises << (promise = (r[:promise] ||= Promise.new))
+
         if r[:requires].any?
-          promises << (promise = ::Opal::Promise.new)
-
-          a = []
-          c = []
-
-          get_requires(r[:requires], a, true)
-
-          a.each do |re|
-            c << -> do
-              p = ::Opal::Promise.new
-
-              path_name = re.delete(:path_name)
-              BrowserIO.javascript(path_name, re.reject { |k, v| k.to_s == 'requires'}, p)
-
-              p
-            end
-          end
-
-          ::Opal::Promise.when(*c.map!(&:call)).then do |*args|
+          Promise.when(*get_requires(r[:requires])).then do |*args|
             path_name = r.delete(:path_name)
-            BrowserIO.javascript(path_name, r.reject { |k, v| k.to_s == 'requires'}, promise)
+            BrowserIO.javascript(path_name, r, promise)
           end
         else
-          reqs << r
-
-          if !from_get
-            promises << (promise = ::Opal::Promise.new)
-
-            path_name = r.delete(:path_name)
-            BrowserIO.javascript(path_name, r.reject { |k, v| k.to_s == 'requires'}, promise)
-          end
+          path_name = r.delete(:path_name)
+          BrowserIO.javascript(path_name, r, promise)
         end
       end
 

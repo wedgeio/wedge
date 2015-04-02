@@ -2,7 +2,7 @@ module BrowserIO
   class Component
     include Methods
 
-    REJECTED_CLIENT_OPTS = %i(scope file_path methods_wrapped events klass on on_server_methods added_class_events)
+    REJECTED_CLIENT_OPTS = %i(scope file_path methods_wrapped events klass on on_server_methods added_class_events loaded html)
 
     class << self
       # Override the default new behaviour
@@ -14,11 +14,6 @@ module BrowserIO
 
         # Merge other args into opts
         args.each { |a| a.each {|k, v| obj.bio_opts[k] = v } } if args.any?
-
-        # Set all the requires
-        unless RUBY_ENGINE == 'opal'
-          obj.bio_opts.requires = obj.bio_config.get_requires
-        end
 
         obj.bio_opts.events.scope = obj
 
