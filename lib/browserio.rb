@@ -170,7 +170,7 @@ module BrowserIO
       @config ||= begin
         args = { klass: self }
 
-        if RUBY_ENGINE == 'ruby'
+        unless RUBY_ENGINE == 'opal'
           args[:file_path] = caller.first.gsub(/(?<=\.rb):.*/, '')
         end
 
