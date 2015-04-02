@@ -1,6 +1,6 @@
 class DummyApp
-  class FooForm < BrowserIO::Form
+  class FooForm < BrowserIO::Plugins::Form
     config.name :foo_form
-    config.requires :pjax_plugin
+    config.requires :bar_form
   end
 end

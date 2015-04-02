@@ -15,7 +15,7 @@ class DummyApp
     config.dom do
       dom.find('body') << assets(:js)
     end
-    config.requires :bar, :foo_form
+    config.requires :bar, :foo_form, :pjax_plugin
 
     def display
       if server?
