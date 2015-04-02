@@ -1,3 +1,5 @@
+require_relative 'base' unless RUBY_ENGINE == 'opal'
+
 class DummyApp
   class RootComponent < BaseComponent
     config.name :root
