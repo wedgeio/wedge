@@ -95,56 +95,50 @@ module BrowserIO
         end
       else
         opts.loaded ||= {}
+        reqs = BrowserIO.requires[options[:name].to_sym].dup
 
-        assets_url    = options[:assets_url]
-        method_called = options.delete(:method_called)
-        method_args   = options.delete(:method_args)
-        name          = options.delete(:name)
-        reqs          = BrowserIO.requires[name.to_sym].dup
-
-        `console.log(reqs)`
         if !opts.loaded.keys.include? path_name
           opts.loaded[path_name] = false
 
           if reqs.present? && reqs.first.is_a?(Hash)
             ::Opal::Promise.when(*get_requires(reqs)).then do
-              `$.getScript("/" + assets_url + "/" + path_name + ".js").done(function(){`
-                opts.loaded[path_name] = true
-
-                comp = BrowserIO[name, options]
-                comp.send(method_called, *method_args) if method_called
-                comp.bio_trigger :browser_events
-
-                promise.resolve true if promise
-              `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); });`
+              load_comp path_name, promise, options
             end
           else
-            `$.getScript("/" + assets_url + "/" + path_name + ".js").done(function(){`
-              opts.loaded[path_name] = true
-
-              comp = BrowserIO[name, options]
-              comp.send(method_called, *method_args) if method_called
-              comp.bio_trigger :browser_events
-
-              promise.resolve true if promise
-            `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); });`
+            load_comp path_name, promise, options
           end
         end
       end
+    end
+
+    def load_comp path_name, promise = Promise.new, options = {}
+      assets_url    = options[:assets_url]
+      method_called = options[:method_called]
+      method_args   = options[:method_args]
+      name          = options[:name]
+
+      `$.getScript("/" + assets_url + "/" + path_name + ".js").done(function(){`
+        opts.loaded[path_name] = true
+
+        comp = BrowserIO[name, options]
+        comp.send(method_called, *method_args) if method_called
+        comp.bio_trigger :browser_events
+
+        promise.resolve true
+      `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); });`
     end
 
     def get_requires reqs
       promises = []
 
       reqs.each do |r|
-        r = r.dup
-
         promises << (promise = (r[:promise] ||= Promise.new))
 
         if r[:requires].any?
           Promise.when(*get_requires(r[:requires])).then do |*args|
             path_name = r.delete(:path_name)
-            BrowserIO.javascript(path_name, r, promise)
+            load_comp path_name, promise, r
+            # BrowserIO.javascript(path_name, r, promise)
           end
         else
           path_name = r.delete(:path_name)
