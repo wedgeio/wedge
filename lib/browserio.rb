@@ -136,12 +136,11 @@ module BrowserIO
 
         if r[:requires].any?
           Promise.when(*get_requires(r[:requires])).then do |*args|
-            path_name = r.delete(:path_name)
-            load_comp path_name, promise, r
-            # BrowserIO.javascript(path_name, r, promise)
+            path_name = r[:path_name]
+            BrowserIO.javascript(path_name, r, promise)
           end
         else
-          path_name = r.delete(:path_name)
+          path_name = r[:path_name]
           BrowserIO.javascript(path_name, r, promise)
         end
       end
