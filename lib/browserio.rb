@@ -96,6 +96,7 @@ module BrowserIO
       else
         opts.loaded ||= {}
         reqs = BrowserIO.requires[options[:name].to_sym].dup
+        `console.log(reqs)`
 
         if !opts.loaded.keys.include? path_name
           opts.loaded[path_name] = false
@@ -107,6 +108,8 @@ module BrowserIO
           else
             load_comp path_name, promise, options
           end
+        elsif opts.loaded[path_name]
+          promise.resolve true
         end
       end
     end
