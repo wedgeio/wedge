@@ -21,7 +21,7 @@ module BrowserIO
   include Methods
 
   class << self
-    attr_accessor :requires
+    attr_accessor :requires, :loaded_requires
 
     # Used to call a component.
     #
@@ -94,61 +94,64 @@ module BrowserIO
           js
         end
       else
-        opts.loaded ||= {}
+        BrowserIO.loaded_requires ||= []
         reqs = BrowserIO.requires[options[:name].to_sym].dup
-        `console.log(reqs)`
 
-        if !opts.loaded.keys.include? path_name
-          opts.loaded[path_name] = false
+        load_requires get_requires(reqs)
+      end
+    end
 
-          if reqs.present? && reqs.first.is_a?(Hash)
-            ::Opal::Promise.when(*get_requires(reqs)).then do
-              load_comp path_name, promise, options
-            end
-          else
-            load_comp path_name, promise, options
-          end
-        elsif opts.loaded[path_name]
-          promise.resolve true
+    def load_requires requires
+      reqs     = requires.shift
+      promises = []
+
+      reqs.each do |r|
+        next if BrowserIO.loaded_requires.include? r[:name]
+
+        BrowserIO.loaded_requires << r[:name]
+
+        promises << -> do
+          promise   = ::Opal::Promise.new
+          path_name = r.delete(:path_name)
+
+          load_comp path_name, promise, r
         end
       end
+
+      Promise.when(*promises.map!(&:call)).then do
+        load_requires requires
+      end
+    end
+
+    def get_requires reqs, requires_array = []
+      new_reqs = []
+
+      reqs.each do |r|
+        if r[:requires].any?
+          get_requires(r[:requires], requires_array)
+        end
+
+        new_reqs << r
+      end
+
+      requires_array << new_reqs if new_reqs.any?
+
+      requires_array
     end
 
     def load_comp path_name, promise = Promise.new, options = {}
       assets_url    = options[:assets_url]
-      method_called = options[:method_called]
-      method_args   = options[:method_args]
-      name          = options[:name]
+      # name          = options[:name]
 
       `$.getScript("/" + assets_url + "/" + path_name + ".js").done(function(){`
-        opts.loaded[path_name] = true
-
-        comp = BrowserIO[name, options]
-        comp.send(method_called, *method_args) if method_called
-        comp.bio_trigger :browser_events
+        # comp = BrowserIO[name, options]
+        # comp.send(method_called, *method_args) if method_called
+        # comp.bio_trigger :browser_events
 
         promise.resolve true
       `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); });`
-    end
 
-    def get_requires reqs
-      promises = []
-
-      reqs.each do |r|
-        promises << (promise = (r[:promise] ||= Promise.new))
-
-        if r[:requires].any?
-          Promise.when(*get_requires(r[:requires])).then do |*args|
-            path_name = r[:path_name]
-            BrowserIO.javascript(path_name, r, promise)
-          end
-        else
-          path_name = r[:path_name]
-          BrowserIO.javascript(path_name, r, promise)
-        end
-      end
-
-      promises
+      promise
     end
 
     # Used to setup the component with default options.

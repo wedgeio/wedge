@@ -1,7 +1,7 @@
 module BrowserIO
   module Plugins
     class Pjax < Component
-      config.name :pjax_plugin, :pjax
+      config.name :pjax, :pjax_plugin
       config.requires :history_plugin
 
       class Nanobar
