@@ -7,18 +7,16 @@ require 'awesome_print'
 ROOT_PATH = File.dirname(__FILE__)
 
 class DummyApp < Roda
+  plugin :browserio, {
+    scope: self,
+    plugins: [:form]
+  }
+
   plugin :assets, {
     group_subdirs: false,
     path: ROOT_PATH,
     css_dir: '',
-    js_dir: '',
-    js: [ 'bio/browserio.js' ]
-  }
-
-  plugin :browserio, {
-    scope: self,
-    assets_url: 'assets/bio',
-    plugins: [:form]
+    js_dir: ''
   }
 
   route do |r|
@@ -32,3 +30,5 @@ end
 
 Dir["#{ROOT_PATH}/forms/*.rb"].sort.each { |file| require file }
 Dir["#{ROOT_PATH}/components/*.rb"].sort.each { |file| require file }
+
+BrowserIO.cache # cache files on app load

@@ -15,6 +15,8 @@ module BrowserIO
     # @param opts [Hash] The initial params for #opts.
     def initialize(opts = {})
       opts = {
+        cache_assets: false,
+        assets_key: false,
         tmpl: IndifferentHash.new,
         scope: false,
         loaded: false,
@@ -23,6 +25,7 @@ module BrowserIO
         on_server_methods: [],
         object_events: {},
         is_plugin: false,
+        assets_url: '/assets/bio',
         plugins: []
       }.merge opts
 
@@ -45,7 +48,7 @@ module BrowserIO
       opts.is_plugin
     end
 
-    %w(scope assets_url).each do |m|
+    %w(scope assets_url cache_assets assets_key).each do |m|
       define_method m do |v|
         opts[m] = v
       end
@@ -107,7 +110,7 @@ module BrowserIO
       requires.each do |r|
         klass = BrowserIO.components[r.to_sym].klass
         o = klass.client_bio_opts.select do |k, v|
-          %w(path_name name assets_url requires).include? k.to_s
+          %w(path_name name requires).include? k.to_s
         end
 
         # We don't want to get a stack limit error so we stop something

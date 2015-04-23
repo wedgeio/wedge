@@ -21,7 +21,20 @@ module BrowserIO
   include Methods
 
   class << self
-    attr_accessor :requires, :loaded_requires, :loaded_requires_events
+    attr_accessor :requires, :loaded_requires, :loaded_requires_events, :javascript_cache,
+      :bio_javascript_loaded
+
+    def cache
+      javascript
+    end
+
+    def assets_url
+      "#{opts.assets_url}#{opts.cache_assets ? "/#{opts.assets_key}" : ''}"
+    end
+
+    def script_tag
+      "<script src='#{assets_url}/browserio.js'></script>"
+    end
 
     # Used to call a component.
     #
@@ -72,26 +85,38 @@ module BrowserIO
       if server?
         if path_name == 'browserio'
           @bio_javascript ||= begin
+            @bio_javascript_loaded = true
             requires = {}
+
+            @javascript_cache ||= {}
 
             components.to_h.each do |k, v|
               requires[k] = v.klass.bio_config.get_requires
+              javascript(v.klass.bio_opts[:path_name])
             end
 
             compiled_requires = Base64.encode64 requires.to_json
+            assets_key        = opts.assets_key
+            cache_assets      = opts.cache_assets
 
             js = build(path_name, options).javascript
             js << Opal.compile("BrowserIO.instance_variable_set(:@requires, JSON.parse(Base64.decode64('#{compiled_requires}')))")
+            # fix: we need to just merge in all config opts and just reject
+            # certain ones
+            js << Opal.compile("BrowserIO.config.assets_key('#{assets_key}')") if assets_key
+            js << Opal.compile("BrowserIO.config.cache_assets('#{cache_assets}')") if cache_assets
+            ##############################################################
             js
           end
         else
-          js = build(path_name, options).javascript
-          comp_name = components.to_h.select { |k, v| v.path_name == path_name }.first.last.name
-          comp = BrowserIO[comp_name]
-          options = comp.client_bio_opts
-          compiled_opts = Base64.encode64 options.to_json
-          js << Opal.compile("BrowserIO.components[:#{comp_name}].klass.instance_variable_set(:@bio_config, BrowserIO::Config.new(BrowserIO.components[:#{comp_name}].klass.bio_config.opts_dup.merge(JSON.parse(Base64.decode64('#{compiled_opts}')))))")
-          js
+          @javascript_cache[path_name] ||= begin
+            js = build(path_name, options).javascript
+            comp_name = components.to_h.select { |k, v| v.path_name == path_name }.first.last.name
+            comp = BrowserIO[comp_name]
+            options = comp.client_bio_opts
+            compiled_opts = Base64.encode64 options.to_json
+            js << Opal.compile("BrowserIO.components[:#{comp_name}].klass.instance_variable_set(:@bio_config, BrowserIO::Config.new(BrowserIO.components[:#{comp_name}].klass.bio_config.opts_dup.merge(JSON.parse(Base64.decode64('#{compiled_opts}')))))")
+          end
         end
       else
         BrowserIO.loaded_requires ||= []
@@ -167,11 +192,15 @@ module BrowserIO
 
     def load_comp options = {}, promise = Promise.new
       path_name  = options[:path_name]
-      assets_url = options[:assets_url]
+      assets_url = BrowserIO.assets_url
 
-      `$.getScript("/" + assets_url + "/" + path_name + ".js").done(function(){`
+      # fix: this could give people unwanted behaviour, change getScript to just
+      # use ajax.
+      `jQuery.ajaxSetup({ cache: true })` if BrowserIO.opts.cache_assets
+      `$.getScript(assets_url + "/" + path_name + ".js").done(function(){`
         promise.resolve true
       `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); });`
+      #########################################################################
 
       promise
     end
@@ -186,8 +215,7 @@ module BrowserIO
     #   end
     # @yield [Config]
     def setup(&block)
-      javascript # This pre-compiles the core and store it in mem
-      block.call config
+      block.call config if block_given?
     end
 
     def config
@@ -195,13 +223,13 @@ module BrowserIO
         args = { klass: self }
 
         unless RUBY_ENGINE == 'opal'
-          args[:file_path] = caller.first.gsub(/(?<=\.rb):.*/, '')
+          args[:file_path]  = caller.first.gsub(/(?<=\.rb):.*/, '')
+          args[:assets_key] = ENV.fetch('SOURCE_VERSION') { `git rev-parse HEAD 2>/dev/null`.to_s.strip }
         end
 
         Config.new(args)
       end
     end
-    alias_method :config, :config
 
     def opts
       config.opts
