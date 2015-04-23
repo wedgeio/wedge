@@ -21,7 +21,7 @@ module BrowserIO
   include Methods
 
   class << self
-    attr_accessor :requires, :loaded_requires
+    attr_accessor :requires, :loaded_requires, :loaded_requires_events
 
     # Used to call a component.
     #
@@ -95,13 +95,44 @@ module BrowserIO
         end
       else
         BrowserIO.loaded_requires ||= []
-        reqs = BrowserIO.requires[options[:name].to_sym].dup
+        BrowserIO.loaded_requires_events ||= []
+        reqs     = BrowserIO.requires[options[:name].to_sym].dup
+        promise  = Promise.new
+        requires = get_requires(reqs)
 
-        load_requires get_requires(reqs)
+        load_requires(requires.dup, promise)
+
+        promise.then do
+          load_comp(options).then do
+            method_called = options[:method_called]
+            method_args   = options[:method_args]
+            name          = options[:name]
+            comp          = BrowserIO[name, options]
+
+            Document.ready? do
+              trigger_requires_events requires.dup
+              comp.send(method_called, *method_args) if method_called
+              comp.bio_trigger :browser_events
+            end
+          end
+        end
       end
     end
 
-    def load_requires requires
+    def trigger_requires_events requires
+      reqs = requires.shift
+
+      reqs.each do |r|
+        next if BrowserIO.loaded_requires_events.include? r[:name]
+        BrowserIO.loaded_requires_events << r[:name]
+        comp = BrowserIO[r[:name], r]
+        comp.bio_trigger :browser_events
+      end
+
+      trigger_requires_events requires if requires.any?
+    end
+
+    def load_requires requires, promise = Promise.new
       reqs     = requires.shift
       promises = []
 
@@ -110,16 +141,11 @@ module BrowserIO
 
         BrowserIO.loaded_requires << r[:name]
 
-        promises << -> do
-          promise   = ::Opal::Promise.new
-          path_name = r.delete(:path_name)
-
-          load_comp path_name, promise, r
-        end
+        promises << -> { load_comp r }
       end
 
       Promise.when(*promises.map!(&:call)).then do
-        load_requires requires
+        requires.any?? load_requires(requires, promise) : promise.resolve(true)
       end
     end
 
@@ -139,15 +165,11 @@ module BrowserIO
       requires_array
     end
 
-    def load_comp path_name, promise = Promise.new, options = {}
-      assets_url    = options[:assets_url]
-      # name          = options[:name]
+    def load_comp options = {}, promise = Promise.new
+      path_name  = options[:path_name]
+      assets_url = options[:assets_url]
 
       `$.getScript("/" + assets_url + "/" + path_name + ".js").done(function(){`
-        # comp = BrowserIO[name, options]
-        # comp.send(method_called, *method_args) if method_called
-        # comp.bio_trigger :browser_events
-
         promise.resolve true
       `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); });`
 
