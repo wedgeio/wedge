@@ -1,4 +1,4 @@
-# BrowserIO
+# Wedge
 
 Components for Ruby.
 
@@ -7,7 +7,7 @@ Components for Ruby.
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'browserio'
+gem 'wedge'
 ```
 
 And then execute:
@@ -16,13 +16,13 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install browserio
+    $ gem install wedge
 
 ## Basic Usage
 
 ### Setup
 
-    class BasicComponent < BrowserIO::Component
+    class BasicComponent < Wedge::Component
       setup do |config|
         config.name :basic
       end
@@ -34,7 +34,7 @@ Or install it yourself as:
 
 ### Call
 
-    Browser[:basic].foo
+    Wedge[:basic].foo
 
 ### Response
 
@@ -42,7 +42,7 @@ Or install it yourself as:
 
 ## Contributing
 
-1. Fork it ( https://github.com/[my-github-username]/BrowserIO/fork )
+1. Fork it ( https://github.com/[my-github-username]/Wedge/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
