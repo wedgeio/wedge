@@ -1,5 +1,5 @@
 class DummyApp
-  class BarComponent < BrowserIO::Component
+  class BarComponent < Wedge::Component
     config.name :bar
     config.requires :root, :base
 

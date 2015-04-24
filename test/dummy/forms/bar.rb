@@ -1,5 +1,5 @@
 class DummyApp
-  class BarForm < BrowserIO::Plugins::Form
+  class BarForm < Wedge::Plugins::Form
     config.name :bar_form
   end
 end

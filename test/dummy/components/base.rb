@@ -1,5 +1,5 @@
 class DummyApp
-  class BaseComponent < BrowserIO::Component
+  class BaseComponent < Wedge::Component
     config.name :base
   end
 end

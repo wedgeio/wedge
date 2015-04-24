@@ -1,4 +1,4 @@
-module BrowserIO
+module Wedge
   class IndifferentHash < Hash
 
     def initialize(constructor = {}, &block)

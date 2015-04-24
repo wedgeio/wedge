@@ -12,7 +12,7 @@ unless RUBY_ENGINE == 'opal'
   end
 end
 
-module BrowserIO
+module Wedge
   # Create our own opal instance.
   Opal = ::Opal.dup
 end

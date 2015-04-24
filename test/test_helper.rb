@@ -3,7 +3,7 @@ Bundler.setup :default, ENV.fetch('RACK_ENV') { 'development' }
 
 require 'minitest/autorun'
 require 'minitest/reporters'
-require 'browserio'
+require 'wedge'
 
 require 'pry'
 require 'awesome_print'
@@ -18,8 +18,8 @@ module Minitest
       @_session ||= OpenStruct.new
     end
 
-    def bio(*args)
-      BrowserIO[*args]
+    def wedge(*args)
+      wedge[*args]
     end
 
     # def app(*args)

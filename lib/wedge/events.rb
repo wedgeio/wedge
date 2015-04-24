@@ -1,4 +1,4 @@
-module BrowserIO
+module Wedge
   class Events
     attr_accessor :scope, :browser_events, :object_events
 
@@ -29,11 +29,11 @@ module BrowserIO
       if event[:name].to_s == 'ready' || event[:name] =~ /[:\s]/ || event[:selector]
         browser_events << event
       else
-        event[:component] = scope.bio_opts.name
+        event[:component] = scope.wedge_opts.name
 
-        if !scope.class.bio_opts.added_class_events && for_component = event[:options].delete(:for)
-          bio_opts = BrowserIO.components[for_component].klass.bio_opts
-          events = bio_opts.object_events[event.delete(:name)] ||= []
+        if !scope.class.wedge_opts.added_class_events && for_component = event[:options].delete(:for)
+          wedge_opts = Wedge.components[for_component].klass.wedge_opts
+          events = wedge_opts.object_events[event.delete(:name)] ||= []
           events << event
         else
           events = object_events[event.delete(:name)] ||= []
@@ -57,13 +57,13 @@ module BrowserIO
       else
         events = object_events[name] || []
         events.each do |event|
-          BrowserIO[event[:component]].instance_exec options, &event[:block]
+          Wedge[event[:component]].instance_exec options, &event[:block]
         end
       end
     end
 
     def trigger_browser_event event
-      comp = BrowserIO[scope.bio_opts.name]
+      comp = Wedge[scope.wedge_opts.name]
 
       case event[:name]
       when 'ready'

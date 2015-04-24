@@ -8,7 +8,7 @@ class DummyApp
       <html>
         <head>
           <script src="//code.jquery.com/jquery-1.11.2.js"></script>
-          #{BrowserIO.script_tag}
+          #{Wedge.script_tag}
         </head>
         <body>
           <div id='foo'>bar</div>

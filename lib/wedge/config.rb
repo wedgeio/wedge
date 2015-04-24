@@ -1,7 +1,7 @@
 require 'ostruct'
-require 'browserio/events'
+require 'wedge/events'
 
-module BrowserIO
+module Wedge
   class Config
     include Methods
 
@@ -25,7 +25,7 @@ module BrowserIO
         on_server_methods: [],
         object_events: {},
         is_plugin: false,
-        assets_url: '/assets/bio',
+        assets_url: '/assets/wedge',
         plugins: []
       }.merge opts
 
@@ -39,8 +39,8 @@ module BrowserIO
       names.each do |name|
         opts.name = name.to_sym
         opts.is_plugin = true if name.to_s =~ /_plugin$/
-        BrowserIO.components ||= {}
-        BrowserIO.components[opts.name] = opts
+        Wedge.components ||= {}
+        Wedge.components[opts.name] = opts
       end
     end
 
@@ -77,7 +77,7 @@ module BrowserIO
       unless RUBY_ENGINE == 'opal'
         args.each do |a|
           if a.to_s[/_plugin$/]
-            require "browserio/plugins/#{a.to_s.gsub(/_plugin$/, '')}"
+            require "wedge/plugins/#{a.to_s.gsub(/_plugin$/, '')}"
           end
           opts.requires << a
         end
@@ -90,10 +90,10 @@ module BrowserIO
 
     def plugin(name)
       unless RUBY_ENGINE == 'opal'
-        require "browserio/plugins/#{name}"
-        klass = BrowserIO.components[:"#{name}_plugin"].klass
-        BrowserIO::Component.include(klass::InstanceMethods) if defined?(klass::InstanceMethods)
-        BrowserIO::Component.extend(klass::ClassMethods) if defined?(klass::ClassMethods)
+        require "wedge/plugins/#{name}"
+        klass = Wedge.components[:"#{name}_plugin"].klass
+        Wedge::Component.include(klass::InstanceMethods) if defined?(klass::InstanceMethods)
+        Wedge::Component.extend(klass::ClassMethods) if defined?(klass::ClassMethods)
       end
     end
 
@@ -108,8 +108,8 @@ module BrowserIO
       previous_requires.each { |p| requires.delete(p) }
 
       requires.each do |r|
-        klass = BrowserIO.components[r.to_sym].klass
-        o = klass.client_bio_opts.select do |k, v|
+        klass = Wedge.components[r.to_sym].klass
+        o = klass.client_wedge_opts.select do |k, v|
           %w(path_name name requires).include? k.to_s
         end
 

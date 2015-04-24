@@ -1,4 +1,4 @@
-module BrowserIO
+module Wedge
   module Plugins
     class Pjax < Component
       config.name :pjax, :pjax_plugin

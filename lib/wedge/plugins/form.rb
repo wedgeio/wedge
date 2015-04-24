@@ -1,7 +1,7 @@
-require 'browserio/plugins/validations'
+require 'wedge/plugins/validations'
 require 'forwardable'
 
-module BrowserIO
+module Wedge
   module Plugins
     class Form < Component
       config.name :form_plugin
@@ -366,7 +366,7 @@ module BrowserIO
               if !value.nil?
                 value = value.to_s
 
-                if value != value.upcase && !value.match(BrowserIO::Plugins::Form::EMAIL)
+                if value != value.upcase && !value.match(Wedge::Plugins::Form::EMAIL)
                   field_value = value.titleize
                 else
                   field_value = value
@@ -428,4 +428,4 @@ module BrowserIO
   end
 end
 
-BrowserIO::Form = BrowserIO::Plugins::Form
+Wedge::Form = Wedge::Plugins::Form

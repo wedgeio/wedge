@@ -1,4 +1,4 @@
-module BrowserIO
+module Wedge
   module Plugins
     class History < Component
       config.name :history_plugin
@@ -7,7 +7,7 @@ module BrowserIO
 end
 
 if RUBY_ENGINE == 'opal'
-  require 'browserio/plugins/location'
+  require 'wedge/plugins/location'
 
   module Browser
     # {Window} instances are {Native} objects used to wrap native window instances.

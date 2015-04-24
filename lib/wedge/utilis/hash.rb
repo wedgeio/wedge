@@ -72,6 +72,6 @@ class Hash
   end
 
   def indifferent
-    BrowserIO::IndifferentHash.new self
+    Wedge::IndifferentHash.new self
   end
 end

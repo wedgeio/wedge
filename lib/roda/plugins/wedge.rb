@@ -1,54 +1,54 @@
 class Roda
   module RodaPlugins
-    module BrowserIO
+    module Wedge
       def self.configure(app, opts = {})
-        if app.opts[:browserio]
-          app.opts[:browserio].merge!(opts)
+        if app.opts[:wedge]
+          app.opts[:wedge].merge!(opts)
         else
-          app.opts[:browserio] = opts.dup
+          app.opts[:wedge] = opts.dup
         end
 
-        opts = app.opts[:browserio]
+        opts = app.opts[:wedge]
 
         opts.each do |k, v|
           case k.to_s
           when 'plugins'
-            v.each { |p| ::BrowserIO.config.plugin p }
+            v.each { |p| ::Wedge.config.plugin p }
           when 'scope'
             begin
-              ::BrowserIO.config.scope v.new
+              ::Wedge.config.scope v.new
             rescue
-              ::BrowserIO.config.scope v.new('')
+              ::Wedge.config.scope v.new('')
             end
           else
-            ::BrowserIO.config.send(k, v)
+            ::Wedge.config.send(k, v)
           end
         end
       end
 
       module InstanceMethods
-        def bio(*args)
+        def wedge(*args)
           args << { scope: self }
-          ::BrowserIO[*args]
+          ::Wedge[*args]
         end
       end
 
       module RequestClassMethods
-        def bio_route_regex
-          assets_url = ::BrowserIO.assets_url.gsub(%r{^(http://[^\/]*\/|\/)}, '')
+        def wedge_route_regex
+          assets_url = ::Wedge.assets_url.gsub(%r{^(http://[^\/]*\/|\/)}, '')
           %r{#{assets_url}/(.*)\.(.*)$}
         end
       end
 
       module RequestMethods
-        def browserio
-          on self.class.bio_route_regex do |component, ext|
+        def wedge_assets
+          on self.class.wedge_route_regex do |component, ext|
             case ext
             when 'map'
-              ::BrowserIO.source_map component
+              ::Wedge.source_map component
             when 'rb'
-              if component =~ /^browserio/
-                path = ::BrowserIO.opts.file_path.gsub(/\/browserio.rb$/, '')
+              if component =~ /^wedge/
+                path = ::Wedge.opts.file_path.gsub(/\/wedge.rb$/, '')
                 File.read("#{path}/#{component}.rb")
               else
                 File.read("#{ROOT_PATH}/#{component}.rb")
@@ -68,7 +68,7 @@ class Roda
               method_called = data.delete(:method_called)
               method_args   = data.delete(:method_args)
 
-              res = scope.bio(name, data).send(method_called, *method_args) || ''
+              res = scope.wedge(name, data).send(method_called, *method_args) || ''
 
               scope.response.headers["BIO-CSRF-TOKEN"] = scope.csrf_token if scope.methods.include? :csrf_token
 
@@ -81,13 +81,13 @@ class Roda
 
               res
             else
-              "#{::BrowserIO.javascript(component)}\n//# sourceMappingURL=/assets/bio/#{component}.map"
+              "#{::Wedge.javascript(component)}\n//# sourceMappingURL=/assets/wedge/#{component}.map"
             end
           end
         end
       end
     end
 
-    register_plugin(:browserio, BrowserIO)
+    register_plugin(:wedge, Wedge)
   end
 end

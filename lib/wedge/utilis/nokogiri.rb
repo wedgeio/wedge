@@ -17,7 +17,7 @@ module Nokogiri
       private
 
       def coerce data # :nodoc:
-        if data.class.to_s == 'BrowserIO::DOM'
+        if data.class.to_s == 'Wedge::DOM'
           data = data.dom
         end
 

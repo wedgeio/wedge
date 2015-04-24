@@ -1,4 +1,4 @@
-module BrowserIO
+module Wedge
   module Plugins
     class Form < Component
       # Provides a base implementation for extensible validation routines.

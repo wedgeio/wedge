@@ -1,6 +1,6 @@
 require_relative 'test_helper'
 
-class BasicComponent < BrowserIO::Component
+class BasicComponent < wedge::Component
   config.name :basic
   config.html <<-HTML
     <!DOCTYPE html>
@@ -21,14 +21,14 @@ end
 
 class TestComponent < Minitest::Test
   def test_calling_basic_component
-    assert_equal 'bar', bio(:basic).foo
+    assert_equal 'bar', wedge(:basic).foo
   end
 
   def test_parsing_html
-    assert_equal '<div id="foo">bar</div>', bio(:basic).tmpl(:foo).to_html
+    assert_equal '<div id="foo">bar</div>', wedge(:basic).tmpl(:foo).to_html
   end
 
   def test_returning_js
-    assert bio(:basic, :js).foo[/Opal/]
+    assert wedge(:basic, :js).foo[/Opal/]
   end
 end

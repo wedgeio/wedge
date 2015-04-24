@@ -1,4 +1,4 @@
-module BrowserIO
+module Wedge
   module HTML
     include Methods
 
