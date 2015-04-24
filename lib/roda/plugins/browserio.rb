@@ -35,7 +35,7 @@ class Roda
 
       module RequestClassMethods
         def bio_route_regex
-          assets_url = ::BrowserIO.assets_url.gsub(%r{^(http://.*\/|\/)}, '')
+          assets_url = ::BrowserIO.assets_url.gsub(%r{^(http://[^\/]*\/|\/)}, '')
           %r{#{assets_url}/(.*)\.(.*)$}
         end
       end

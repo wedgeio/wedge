@@ -39,7 +39,7 @@ module BrowserIO
           public_instance_methods(false).each do |meth|
             alias_method :"bio_original_#{meth}", :"#{meth}"
             define_method "#{meth}" do |*d_args, &blk|
-              if server? && bio_opts.js
+              if server? && !bio_opts.method_called && bio_opts.js
                 bio_opts.method_called = meth
                 bio_opts.method_args   = *d_args
               end
