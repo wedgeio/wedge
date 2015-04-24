@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'wedge/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "wedgeio"
+  spec.name          = "wedge"
   spec.version       = Wedge::VERSION
   spec.authors       = ["cj"]
   spec.email         = ["cjlazell@gmail.com"]
