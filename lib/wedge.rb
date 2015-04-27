@@ -24,7 +24,7 @@ module Wedge
     attr_accessor :requires, :loaded_requires, :loaded_requires_events, :javascript_cache,
       :wedge_javascript_loaded
 
-    def cache
+    def compile_opal
       javascript
     end
 
@@ -121,11 +121,15 @@ module Wedge
       else
         Wedge.loaded_requires ||= []
         Wedge.loaded_requires_events ||= []
-        reqs     = Wedge.requires[options[:name].to_sym].dup
+        reqs     = Wedge.requires[options[:name].to_sym]
         promise  = Promise.new
-        requires = get_requires(reqs)
 
-        load_requires(requires.dup, promise)
+        if reqs
+          requires = get_requires(reqs.dup)
+          load_requires(requires.dup, promise)
+        else
+          promise.resolve true
+        end
 
         promise.then do
           load_comp(options).then do

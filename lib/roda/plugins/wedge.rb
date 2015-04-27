@@ -16,12 +16,12 @@ class Roda
             v.each { |p| ::Wedge.config.plugin p }
           when 'scope'
             begin
-              ::Wedge.config.scope v.new
+              ::Wedge.config.opts[:scope] = v.new
             rescue
-              ::Wedge.config.scope v.new('')
+              ::Wedge.config.opts[:scope] = v.new({})
             end
           else
-            ::Wedge.config.send(k, v)
+            ::Wedge.config.opts[k.to_sym] = v
           end
         end
       end
@@ -81,7 +81,13 @@ class Roda
 
               res
             else
-              "#{::Wedge.javascript(component)}\n//# sourceMappingURL=/assets/wedge/#{component}.map"
+              scope.response.headers['Content-Type'] = 'application/javascript; charset=UTF-8'
+
+              if ::Wedge.opts[:debug]
+                "#{::Wedge.javascript(component)}\n//# sourceMappingURL=/assets/wedge/#{component}.map"
+              else
+                ::Wedge.javascript(component)
+              end
             end
           end
         end

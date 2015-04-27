@@ -2,7 +2,7 @@ module Wedge
   class Component
     include Methods
 
-    REJECTED_CLIENT_OPTS = %i(scope file_path methods_wrapped events klass on on_server_methods added_class_events loaded html)
+    ALLOWED_CLIENT_OPTS = %i(name path_name method_args method_called cache tmpl key cache_assets assets_key assets_url requires object_events)
 
     class << self
       # Override the default new behaviour
@@ -168,7 +168,7 @@ module Wedge
       end
 
       def client_wedge_opts
-        wedge_config.opts_dup.reject {|k, v| REJECTED_CLIENT_OPTS.include? k }
+        wedge_config.opts_dup.select {|k, v| ALLOWED_CLIENT_OPTS.include? k }
       end
 
       def wedge_on_server(&block)
@@ -192,7 +192,8 @@ module Wedge
 
               HTTP.post("/#{wedge_opts.assets_url}/#{path_name}.call",
                 headers: {
-                  'X-CSRF-TOKEN' => Element.find('meta[name=_csrf]').attr('content')
+                  'X-CSRF-TOKEN' => Element.find('meta[name=_csrf]').attr('content'),
+                  'X-WEDGE-METHOD-REQUEST' => true
                 },
                 payload: payload) do |response|
 
@@ -215,6 +216,16 @@ module Wedge
         end
       end
     end
+
+    def wedge_scope
+      wedge_opts[:scope]
+    end
+    alias_method :scope, :wedge_scope
+
+    def wedge_cache
+      wedge_opts[:cache]
+    end
+    alias_method :cache, :wedge_cache
 
     # Duplicate of class condig [Config]
     # @return config [Config]
@@ -281,6 +292,16 @@ module Wedge
     end
     alias_method :function, :wedge_function
 
+    def wedge_from_server?
+      !defined?(request) || (request && !request.env.include?('HTTP_X_WEDGE_METHOD_REQUEST'))
+    end
+    alias_method :from_server?, :wedge_from_server?
+
+    def wedge_from_client?
+      !wedge_from_server?
+    end
+    alias_method :from_client?, :wedge_from_client?
+
     def wedge_javascript
       return unless server?
 
@@ -295,7 +316,7 @@ module Wedge
     alias_method :javscript, :wedge_javascript
 
     def client_wedge_opts
-      wedge_config.opts_dup.reject {|k, v| REJECTED_CLIENT_OPTS.include? k }
+      wedge_config.opts_dup.select {|k, v| ALLOWED_CLIENT_OPTS.include? k }
     end
     alias_method :client_opts, :client_wedge_opts
 

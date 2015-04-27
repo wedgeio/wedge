@@ -16,6 +16,7 @@ module Wedge
     def initialize(opts = {})
       opts = {
         cache_assets: false,
+        cache: OpenStruct.new,
         assets_key: false,
         tmpl: IndifferentHash.new,
         scope: false,
@@ -48,18 +49,13 @@ module Wedge
       opts.is_plugin
     end
 
-    %w(scope assets_url cache_assets assets_key).each do |m|
-      define_method m do |v|
-        opts[m] = v
-      end
-    end
-
     # Used to set and update the dom
     def dom
       if server?
         yield
       end
     end
+    alias_method :setup, :dom
 
     # Set the raw html
     # @param html [String]
@@ -88,6 +84,12 @@ module Wedge
       opts.to_h.inject({}) {|copy, (key, value)| copy[key] = value.dup rescue value; copy}
     end
 
+    %w(scope assets_url cache_assets assets_key debug).each do |m|
+      define_method m do |v|
+        opts[m] = v
+      end
+    end
+
     def plugin(name)
       unless RUBY_ENGINE == 'opal'
         require "wedge/plugins/#{name}"
@@ -108,7 +110,11 @@ module Wedge
       previous_requires.each { |p| requires.delete(p) }
 
       requires.each do |r|
-        klass = Wedge.components[r.to_sym].klass
+        begin
+          klass = Wedge.components[r.to_sym].klass
+        rescue
+          raise "No component named: #{r}"
+        end
         o = klass.client_wedge_opts.select do |k, v|
           %w(path_name name requires).include? k.to_s
         end

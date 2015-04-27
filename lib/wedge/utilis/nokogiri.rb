@@ -16,9 +16,12 @@ module Nokogiri
 
       private
 
+      alias_method :original_coerce, :coerce
       def coerce data # :nodoc:
         if data.class.to_s == 'Wedge::DOM'
           data = data.dom
+        elsif data.class.to_s[/DOM$/]
+          return original_coerce data
         end
 
         case data
