@@ -130,11 +130,11 @@ module Wedge
           if att.is_a? Array
             att.each { |a| assert_present(a, error = [a, :not_present])}
           else
-            if klass = _form[att]
+            if form_name = _form[att]
               options = {}
               options[:key] = _options[:key] if _options.key? :key
 
-              f = klass.new(_attributes.send(att).attributes, options)
+              f = wedge(form_name, _attributes.send(att).attributes, init: options)
               assert(f.valid?, [att, f.errors])
             else
               assert(!_attributes.send(att).to_s.empty?, error)
