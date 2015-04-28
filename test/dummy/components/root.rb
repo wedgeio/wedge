@@ -3,26 +3,14 @@ require_relative 'base' unless RUBY_ENGINE == 'opal'
 class DummyApp
   class RootComponent < BaseComponent
     config.name :root
-    config.html <<-HTML
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <script src="//code.jquery.com/jquery-1.11.2.js"></script>
-          #{Wedge.script_tag}
-        </head>
-        <body>
-          <div id='foo'>bar</div>
-        </body>
-      </html>
-    HTML
-    config.dom do
-      dom.find('body') << assets(:js)
-    end
     config.requires :base, :bar, :foo_form, :pjax_plugin
+    config.html "<div id='foo'>bar</div>"
 
     def display
       if server?
-        dom
+        wedge(:layout).display do
+          dom.to_html
+        end
       else
         el = Element['<div>']
         el.html 'foo'

@@ -2,7 +2,7 @@ module Wedge
   class Component
     include Methods
 
-    ALLOWED_CLIENT_OPTS = %i(name path_name method_args method_called cache tmpl key cache_assets assets_key assets_url requires object_events)
+    ALLOWED_CLIENT_OPTS = %i(name path_name method_args method_called cache tmpl key cache_assets assets_key assets_url requires)
 
     class << self
       # Override the default new behaviour
@@ -53,7 +53,7 @@ module Wedge
               end
 
               # Append the initialize javscript
-              if server? && opts.js
+              if server? && meth == wedge_opts.method_called && opts.js
                 result = result.to_html if result.is_a? DOM
                 result << wedge_javascript if result.is_a? String
               end
@@ -190,7 +190,7 @@ module Wedge
               payload[:method_called] = meth
               payload[:method_args]   = args
 
-              HTTP.post("/#{wedge_opts.assets_url}/#{path_name}.call",
+              HTTP.post("#{Wedge.assets_url}/#{path_name}.call",
                 headers: {
                   'X-CSRF-TOKEN' => Element.find('meta[name=_csrf]').attr('content'),
                   'X-WEDGE-METHOD-REQUEST' => true
@@ -324,6 +324,12 @@ module Wedge
       wedge_opts.events.trigger(*args)
     end
     alias_method :trigger, :wedge_trigger
+
+    def wedge_super *args, &block
+      caller_str = "#{caller[0]}"
+      calling_method = (caller_str =~ /`([^']*)'/ and $1)
+      self.class.superclass.instance_method(:"wedge_original_#{calling_method}").bind(self).call(*args, &block)
+    end
 
     if RUBY_ENGINE == 'opal'
       def wedge(*args)

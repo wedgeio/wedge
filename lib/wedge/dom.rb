@@ -25,18 +25,18 @@ module Wedge
 
     def find string, &block
       if client?
-        node = DOM.new dom.find(string)
+        node = Wedge::DOM.new dom.find(string)
       elsif server?
         if block_given?
-          node = DOM.new dom.css(string)
+          node = Wedge::DOM.new dom.css(string)
         else
-          node = DOM.new dom.at(string)
+          node = Wedge::DOM.new dom.at(string)
         end
       end
 
       if block_given?
         node.each_with_index do |n, i|
-          block.call DOM.new(n), i
+          block.call Wedge::DOM.new(n), i
         end
       end
 
@@ -103,9 +103,9 @@ module Wedge
       end
 
       def to_html
-        @dom ||= DOM.new '<div>'
+        @dom ||= Wedge::DOM.new '<div>'
         el = dom.first
-        DOM.new('<div>').append(el).html
+        Wedge::DOM.new('<div>').append(el).html
       end
     end
 

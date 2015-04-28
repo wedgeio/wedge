@@ -65,18 +65,16 @@ module Wedge
     def trigger_browser_event event
       comp = Wedge[scope.wedge_opts.name]
 
-      case event[:name]
-      when 'ready'
+      case
+      when event[:name].to_s == 'ready'
         el = Element.find(event[:selector] != '' ? event[:selector] : 'body')
 
         comp.instance_exec el, &event[:block]
-      when 'history_change'
+      when  event[:name].to_s == 'history_change'
         $window.history.change do |he|
           comp.instance_exec he, &event[:block]
         end
-      when 'form'
-        warn 'missing form class option' unless event[:klass]
-
+      when event[:name].to_s == 'submit' && event[:options][:form]
         Document.on :submit, event[:selector] do |evt|
           el = evt.current_target
           evt.prevent_default
@@ -102,12 +100,13 @@ module Wedge
             params_obj = params_obj.deep_merge keys.reverse.inject(value) { |a, n| { n => a } }
           end
 
+          opts = event[:options].dup.reject { |k, v| k.to_s == 'form' }
           opts[:dom] = el
 
           if opts && key = opts[:key]
-            form = event[:klass].new params_obj[key], opts
+            form = Wedge[event[:options][:form], init: [params_obj[key], opts]]
           else
-            form = event[:klass].new params_obj, opts
+            form = Wedge[event[:options][:form], init: [params_obj, opts]]
           end
 
           el.find(opts[:error_selector] || '.field-error').remove

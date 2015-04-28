@@ -31,4 +31,4 @@ end
 Dir["#{ROOT_PATH}/forms/*.rb"].sort.each { |file| require file }
 Dir["#{ROOT_PATH}/components/*.rb"].sort.each { |file| require file }
 
-Wedge.cache # cache files on app load
+Wedge.compile_opal # cache files on app load
