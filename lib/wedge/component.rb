@@ -63,7 +63,18 @@ module Wedge
           end
         end
 
-        obj
+        if obj.wedge_opts.call
+          method_args = args.first
+          method_called = method_args.delete(:call)
+
+          if method_args.any?
+            obj.send(method_called, method_args)
+          else
+            obj.send(method_called)
+          end
+        else
+          obj
+        end
       end
 
       # Used to setup the component with default options.
