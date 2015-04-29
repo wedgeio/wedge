@@ -33,7 +33,8 @@ module Wedge
           obj.send :initialize, &block
         end
 
-        unless wedge_opts.methods_wrapped
+        # don't need to wrap the method if it's opal
+        unless RUBY_ENGINE == 'opal' || wedge_opts.methods_wrapped
           obj.wedge_opts.methods_wrapped = wedge_opts.methods_wrapped = true
 
           public_instance_methods(false).each do |meth|
@@ -60,9 +61,7 @@ module Wedge
 
               result
             end
-              # fix: we shouldn't need to do this, we need to find a way to make
-              # super still work when re-defining the method
-          end unless obj.wedge_opts.name[/_form$/]
+          end
         end
 
         if obj.wedge_opts.call
@@ -339,9 +338,13 @@ module Wedge
     alias_method :trigger, :wedge_trigger
 
     def wedge_super *args, &block
-      caller_str = "#{caller[0]}"
-      calling_method = (caller_str =~ /`([^']*)'/ and $1)
-      self.class.superclass.instance_method(:"wedge_original_#{calling_method}").bind(self).call(*args, &block)
+      if server?
+        caller_str = "#{caller[0]}"
+        calling_method = (caller_str =~ /`([^']*)'/ and $1)
+        self.class.superclass.instance_method(:"wedge_original_#{calling_method}").bind(self).call(*args, &block)
+      else
+        super *args, &block
+      end
     end
 
     if RUBY_ENGINE == 'opal'
