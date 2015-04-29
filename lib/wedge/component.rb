@@ -199,8 +199,9 @@ module Wedge
               payload = client_wedge_opts.reject do |k, _|
                 %w(html tmpl requires plugins object_events js_loaded).include? k
               end
-              payload[:method_called] = meth
-              payload[:method_args]   = args
+              payload[:wedge_name]          = payload[:name]
+              payload[:wedge_method_called] = meth
+              payload[:wedge_method_args]   = args
 
               HTTP.post("#{Wedge.assets_url}/#{path_name}.call",
                 headers: {

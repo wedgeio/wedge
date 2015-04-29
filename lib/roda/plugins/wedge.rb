@@ -64,11 +64,16 @@ class Roda
               end
 
               data          = data.indifferent
-              name          = data.delete(:name)
-              method_called = data.delete(:method_called)
-              method_args   = data.delete(:method_args)
+              name          = data.delete(:wedge_name)
+              method_called = data.delete(:wedge_method_called)
+              method_args   = data.delete(:wedge_method_args)
 
-              res = scope.wedge(name, data).send(method_called, *method_args) || ''
+              if method_args == 'wedge_data' && data
+                method_args   = [data]
+                res = scope.wedge(name).send(method_called, *method_args) || ''
+              else
+                res = scope.wedge(name, data).send(method_called, *method_args) || ''
+              end
 
               scope.response.headers["BIO-CSRF-TOKEN"] = scope.csrf_token if scope.methods.include? :csrf_token
 
