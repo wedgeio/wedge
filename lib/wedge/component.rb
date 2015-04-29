@@ -60,7 +60,9 @@ module Wedge
 
               result
             end
-          end
+              # fix: we shouldn't need to do this, we need to find a way to make
+              # super still work when re-defining the method
+          end unless obj.wedge_opts.name[/_form$/]
         end
 
         if obj.wedge_opts.call
