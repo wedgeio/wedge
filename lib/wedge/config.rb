@@ -16,7 +16,7 @@ module Wedge
     def initialize(opts = {})
       opts = {
         cache_assets: false,
-        cache: OpenStruct.new,
+        cache: IndifferentHash.new,
         assets_key: false,
         tmpl: IndifferentHash.new,
         scope: false,
