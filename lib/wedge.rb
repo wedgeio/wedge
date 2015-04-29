@@ -22,7 +22,7 @@ module Wedge
 
   class << self
     attr_accessor :requires, :loaded_requires, :loaded_requires_events, :javascript_cache,
-      :wedge_javascript_loaded
+      :wedge_javascript_loaded, :object_events, :browser_events
 
     def compile_opal
       javascript
@@ -86,16 +86,22 @@ module Wedge
         if path_name == 'wedge'
           @wedge_javascript ||= begin
             @wedge_javascript_loaded = true
-            requires = {}
+            requires      = {}
+            @object_events = {}
+            @browser_events = {}
 
             @javascript_cache ||= {}
 
             components.to_h.each do |k, v|
-              requires[k] = v.klass.wedge_config.get_requires
+              requires[k]      = v.klass.wedge_config.get_requires
+              # events = Wedge[v.name].wedge_opts.events
+              # @object_events[v.name]  = events.object_events
+              # @browser_events[v.name] = events.browser_events
               javascript(v.klass.wedge_opts[:path_name])
             end
 
             compiled_requires = Base64.encode64 requires.to_json
+            # compiled_object_events = Base64.encode64 object_events.to_json
             assets_key        = opts.assets_key
             cache_assets      = opts.cache_assets
 

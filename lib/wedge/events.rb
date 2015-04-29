@@ -55,7 +55,10 @@ module Wedge
           trigger_browser_event event
         end
       else
-        events = object_events[name] || []
+        # fix: we need to change the way events are stored
+        wedge_events = (Wedge.components[scope.wedge_opts.name].klass.wedge_opts.object_events[name] || [])
+        events = wedge_events.concat(object_events[name] || [])
+        ##################################################
         events.each do |event|
           Wedge[event[:component]].instance_exec options, &event[:block]
         end
