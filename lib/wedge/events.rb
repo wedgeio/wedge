@@ -93,7 +93,13 @@ module Wedge
             name     = field['name']
             value    = field['value']
 
-            params[name] = value
+            if name =~ /\[\]$/
+              name = name.gsub(/\[\]$/,'')
+              params[name] = [] if params[name].nil?
+              params[name].push value
+            else
+              params[name] = value
+            end
           end
 
           params_obj = {}
