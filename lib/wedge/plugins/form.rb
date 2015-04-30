@@ -102,9 +102,11 @@ module Wedge
           send("#{key}=", val)
         end
 
-        _form.each do |key, klass|
+        _form.each do |key, form_name|
           opts = {}
-          opts[key] = klass.new(_data.send(key)) if _data.respond_to?(key)
+          if _data.respond_to?(key)
+            opts[key] = wedge(form_name, init: _data.send(key))
+          end
           @_attributes.set_values opts
 
           send("#{key}=", opts[key])
@@ -152,8 +154,8 @@ module Wedge
             att = ivar[1..-1].to_sym
             atts[att] = _attributes.send(att)
 
-            if klass = _form[att.to_s.to_sym]
-              atts[att] = klass.new(atts[att]).attributes
+            if form_name = _form[att.to_s.to_sym]
+              atts[att] = wedge(form_name, init: atts[att]).attributes
             end
           end
         end
@@ -163,11 +165,11 @@ module Wedge
         hash = {}
 
         data.each do |k, v|
-          if klass = _form[k.to_s.to_sym]
+          if form_name = _form[k.to_s.to_sym]
             d = data[k]
             d = d.attributes if d.is_a?(Form)
 
-            f  = klass.new d
+            f  = wedge(form_name, init: d)
             k  = "#{k}_attributes"
             dt = f.model_attributes
 
