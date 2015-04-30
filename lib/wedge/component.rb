@@ -203,7 +203,9 @@ module Wedge
               payload[:wedge_method_called] = meth
               payload[:wedge_method_args]   = args
 
-              HTTP.post("#{Wedge.assets_url}/#{path_name}.call",
+              call_url = "#{Wedge.assets_url}/#{path_name}.call".gsub(%r{^(http(|s)://[^\/]*\/|\/)}, '')
+
+              HTTP.post("/#{call_url}",
                 headers: {
                   'X-CSRF-TOKEN' => Element.find('meta[name=_csrf]').attr('content'),
                   'X-WEDGE-METHOD-REQUEST' => true
@@ -298,7 +300,7 @@ module Wedge
           block.$$s = null;
           result = block.apply(self, a);
           block.$$s = bs;
-          
+
           return result;
         }
       end
