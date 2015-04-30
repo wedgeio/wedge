@@ -35,7 +35,7 @@ class Roda
 
       module RequestClassMethods
         def wedge_route_regex
-          assets_url = ::Wedge.assets_url.gsub(%r{^(http://[^\/]*\/|\/)}, '')
+          assets_url = ::Wedge.assets_url.gsub(%r{^(http(|s)://[^\/]*\/|\/)}, '')
           %r{#{assets_url}/(.*)\.(.*)$}
         end
       end
