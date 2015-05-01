@@ -236,9 +236,10 @@ module Wedge
         unless RUBY_ENGINE == 'opal'
           args[:file_path]  = caller.first.gsub(/(?<=\.rb):.*/, '')
           args[:assets_key] = begin
-            if defined?(Heroku::API) && ENV['HEROKU_TOKEN'] && ENV['HEROKU_APP']
-              h = Heroku::API.new(api_key: ENV['HEROKU_TOKEN'])
-              h.get_releases(ENV['HEROKU_APP']).body.last['commit']
+            if defined?(PlatformAPI) && ENV['HEROKU_TOKEN'] && ENV['HEROKU_APP']
+              heroku = PlatformAPI.connect_oauth(ENV['HEROKU_TOKEN'])
+              slug_id = heroku.release.list(ENV['HEROKU_APP']).last["slug"]["id"]
+              heroku.slug.info(ENV['HEROKU_APP'], slug_id)["commit"]
             else
               `git rev-parse HEAD 2>/dev/null`.to_s.strip
             end
