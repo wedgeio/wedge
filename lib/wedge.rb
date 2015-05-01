@@ -29,6 +29,11 @@ module Wedge
     end
 
     def assets_url
+      url = opts.assets_url.gsub(%r{^(http(|s)://[^\/]*\/|\/)}, '/')
+      "#{url}#{opts.cache_assets ? "/#{opts.assets_key}" : ''}"
+    end
+
+    def assets_url_with_host
       "#{opts.assets_url}#{opts.cache_assets ? "/#{opts.assets_key}" : ''}"
     end
 
@@ -203,7 +208,7 @@ module Wedge
 
     def load_comp options = {}, promise = Promise.new
       path_name  = options[:path_name]
-      assets_url = Wedge.assets_url
+      assets_url = Wedge.assets_url_with_host
 
       # fix: this could give people unwanted behaviour, change getScript to just
       # use ajax.

@@ -203,7 +203,7 @@ module Wedge
               payload[:wedge_method_called] = meth
               payload[:wedge_method_args]   = args
 
-              call_url = "#{Wedge.assets_url}/#{path_name}.call".gsub(%r{^(http(|s)://[^\/]*\/|\/)}, '')
+              call_url = "#{Wedge.assets_url}/#{path_name}.call"
 
               HTTP.post("/#{call_url}",
                 headers: {
