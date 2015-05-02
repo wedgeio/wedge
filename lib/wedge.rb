@@ -117,6 +117,7 @@ module Wedge
             js << Opal.compile("Wedge.config.assets_key('#{assets_key}')") if assets_key
             js << Opal.compile("Wedge.config.cache_assets('#{cache_assets}')") if cache_assets
             js << Opal.compile("Wedge.config.assets_url('#{opts.assets_url}')")
+            js << Opal.compile("Wedge.config.assets_url_with_host('#{opts.assets_url_with_host}')")
             ##############################################################
             js
           end

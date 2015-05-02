@@ -2,7 +2,7 @@ module Wedge
   class Component
     include Methods
 
-    ALLOWED_CLIENT_OPTS = %i(name path_name method_args method_called cache tmpl key cache_assets assets_key assets_url requires)
+    ALLOWED_CLIENT_OPTS = %i(name path_name method_args method_called cache tmpl key cache_assets assets_key assets_url assets_url_with_host requires)
 
     class << self
       # Override the default new behaviour

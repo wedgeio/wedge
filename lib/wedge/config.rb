@@ -84,7 +84,7 @@ module Wedge
       opts.to_h.inject({}) {|copy, (key, value)| copy[key] = value.dup rescue value; copy}
     end
 
-    %w(scope assets_url cache_assets assets_key debug).each do |m|
+    %w(scope assets_url assets_url_with_host cache_assets assets_key debug).each do |m|
       define_method m do |v|
         opts[m] = v
       end
