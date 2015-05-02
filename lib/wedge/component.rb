@@ -205,7 +205,7 @@ module Wedge
 
               call_url = "#{Wedge.assets_url}/#{path_name}.call"
 
-              HTTP.post("/#{call_url}",
+              HTTP.post(call_url,
                 headers: {
                   'X-CSRF-TOKEN' => Element.find('meta[name=_csrf]').attr('content'),
                   'X-WEDGE-METHOD-REQUEST' => true
