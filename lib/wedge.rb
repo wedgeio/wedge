@@ -243,7 +243,7 @@ module Wedge
           args[:file_path]  = caller.first.gsub(/(?<=\.rb):.*/, '')
           args[:assets_key] = begin
             if defined?(PlatformAPI) && ENV['HEROKU_TOKEN'] && ENV['HEROKU_APP']
-              heroku = PlatformAPI.connect_oauth(ENV['HEROKU_TOKEN'])
+              heroku = PlatformAPI.connect_oauth(ENV['HEROKU_TOKEN'], default_headers: {'Range' => 'version ..; order=desc'})
               slug_id = heroku.release.list(ENV['HEROKU_APP']).first["slug"]["id"]
               heroku.slug.info(ENV['HEROKU_APP'], slug_id)["commit"]
             else
