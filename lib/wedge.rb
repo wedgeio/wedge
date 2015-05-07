@@ -22,7 +22,7 @@ module Wedge
 
   class << self
     attr_accessor :requires, :loaded_requires, :loaded_requires_events, :javascript_cache,
-      :wedge_javascript_loaded, :object_events, :browser_events
+      :wedge_javascript_loaded, :object_events, :browser_events, :events_triggered
 
     def compile_opal
       javascript
@@ -78,9 +78,13 @@ module Wedge
       # @return [Array] List of opal paths.
       def append_paths
         @append_paths ||= begin
-          file = method(:components).source_location.first.sub('/wedge.rb', '')
+          file     = method(:components).source_location.first.sub('/wedge.rb', '')
+          gems_dir = ::Opal.gem_dir.gsub(/(?<=gems)\/opal-.*/, '')
           Wedge::Opal.append_path file
           Wedge::Opal.append_path Dir.pwd
+          Dir["#{gems_dir}/**/"].sort.each do |folder|
+            Wedge::Opal.append_path "#{folder}/lib"
+          end
         end
       end
     end
@@ -132,6 +136,7 @@ module Wedge
           end
         end
       else
+        Wedge.events_triggered ||= []
         Wedge.loaded_requires ||= []
         Wedge.loaded_requires_events ||= []
         reqs     = Wedge.requires[options[:name].to_sym]
@@ -152,9 +157,17 @@ module Wedge
             comp          = Wedge[name, options]
 
             Document.ready? do
+              if method_called && !comp.wedge_opts.on_server_methods.include?(method_called)
+                comp.send(method_called, *method_args)
+              end
+
+              unless Wedge.events_triggered.include?(name)
+                comp.wedge_trigger :browser_events
+                Wedge.loaded_requires << name
+                Wedge.events_triggered << name
+              end
+
               trigger_requires_events requires.dup
-              comp.send(method_called, *method_args) if method_called
-              comp.wedge_trigger :browser_events
             end
           end
         end
@@ -166,9 +179,11 @@ module Wedge
 
       reqs.each do |r|
         next if Wedge.loaded_requires_events.include? r[:name]
+
         Wedge.loaded_requires_events << r[:name]
         comp = Wedge[r[:name], r]
         comp.wedge_trigger :browser_events
+        Wedge.events_triggered << r[:name]
       end
 
       trigger_requires_events requires if requires.any?
@@ -184,7 +199,7 @@ module Wedge
         Wedge.loaded_requires << r[:name]
 
         promises << -> { load_comp r }
-      end
+      end if reqs
 
       Promise.when(*promises.map!(&:call)).then do
         requires.any?? load_requires(requires, promise) : promise.resolve(true)
@@ -211,13 +226,17 @@ module Wedge
       path_name  = options[:path_name]
       assets_url = Wedge.assets_url_with_host
 
-      # fix: this could give people unwanted behaviour, change getScript to just
-      # use ajax.
-      `jQuery.ajaxSetup({ cache: true })` if Wedge.opts.cache_assets
-      `$.getScript(assets_url + "/" + path_name + ".js").done(function(){`
+      if !Wedge.components[options[:name]]
+        # fix: this could give people unwanted behaviour, change getScript to just
+        # use ajax.
+        `jQuery.ajaxSetup({ cache: true })` if Wedge.opts.cache_assets
+        `$.getScript(assets_url + "/" + path_name + ".js").done(function(){`
+          promise.resolve true
+        `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); });`
+        #########################################################################
+      else
         promise.resolve true
-      `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); });`
-      #########################################################################
+      end
 
       promise
     end

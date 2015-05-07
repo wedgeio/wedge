@@ -1,30 +1,24 @@
+if RUBY_ENGINE == 'opal'
+  class Element
+    alias_native :mask
+    alias_native :remove_data, :removeData
+    alias_native :replace_with, :replaceWith
+    alias_native :selectize
+
+    def date_picker options = {}
+      `self.datepicker(JSON.parse(#{options.to_json}))`
+    end
+  end
+end
+
 module Wedge
   module Plugins
     class Pjax < Component
       config.name :pjax, :pjax_plugin
       config.requires :history_plugin
 
-      class Nanobar
-        include Native
-
-        alias_native :go
-        alias_native :start
-        alias_native :finish
-
-        def initialize options = {}
-          `var Nanobar=function(){"use strict";var t,i,e,s,h,n,o={width:"100%",height:"4px",zIndex:9999,top:"0"},a={width:0,height:"100%",clear:"both",transition:"height .3s"};return t=function(t,i){var e;for(e in i)t.style[e]=i[e];t.style["float"]="left"},s=function(){var t=this,i=this.width-this.here;.1>i&&i>-.1?(h.call(this,this.here),this.moving=!1,100==this.width&&(this.el.style.height=0,setTimeout(function(){t.cont.el.removeChild(t.el)},300))):(h.call(this,this.width-i/4),setTimeout(function(){t.go()},16))},h=function(t){this.width=t,this.el.style.width=this.width+"%"},n=function(){var t=new i(this);this.bars.unshift(t)},i=function(i){this.el=document.createElement("div"),this.el.style.backgroundColor=i.opts.bg,this.width=0,this.here=0,this.moving=!1,this.cont=i,t(this.el,a),i.el.appendChild(this.el)},i.prototype.go=function(t){t?(this.here=t,this.moving||(this.moving=!0,s.call(this))):this.moving&&s.call(this)},e=function(i){var e,s,h=this.opts=i||{};h.bg=h.bg||"#000",this.bars=[],e=this.el=document.createElement("div"),t(this.el,o),h.id&&(e.id=h.id),h.className&&(e.className=h.className),e.style.position=h.target?"relative":"fixed",h.target?(s=h.target,s.insertBefore(e,h.target.firstChild)):(s=document.getElementsByTagName("body")[0],s.appendChild(e)),s.className="nanobar-custom-parent",n.call(this)},e.prototype.go=function(t){this.bars[0].go(t),100==t&&n.call(this)},e.prototype.start=function(){(function(){var t=this.bars[0],i=function(){setTimeout(function(){var e=t.here+Math.round(10*Math.random());t.here>=99||(e>99&&(e=99),t.go(e),i())},500)};t.go(10),i()}).call(this)},e.prototype.finish=function(){this.go(100)},e}();`
-          super `new Nanobar(options)`
-        end
-      end if client?
-
-      def progress_bar
-        $pjax_progress_bar
-      end
-
       def get href = false
-        $pjax_progress_bar = Nanobar.new({bg: '#f99f22'}.to_n)
-        progress_bar.start
-        `$(document).trigger('page:click')`
+        `$(document).trigger('page:get')`
         $window.history.push href, pjax: true
       end
 
@@ -37,16 +31,101 @@ module Wedge
         end
       end
 
+      on :ready do
+        %x{
+          (function() {
+            (function($) {
+              $("<style type='text/css'>").text("#wedgePjaxLoader{-webkit-box-shadow:0 0 5px #333;-moz-box-shadow:0 0 5px #333;box-shadow:0 0 5px #333;background:#999;height:2px;position:fixed;top:0;width:50px;z-index:9999999}").appendTo("head");
+              return $.fn.wedgeLoadingBar = function(options) {
+                var settings;
+                settings = $.extend({
+                  turbolinks: true,
+                  ajax: true
+                }, options);
+                if (settings.turbolinks) {
+                  $(document).on('page:fetch', function() {
+                    return window.wedgePjaxLoader.startLoader();
+                  });
+                  $(document).on('page:receive', function() {
+                    return window.wedgePjaxLoader.sliderWidth = $('#wedgePjaxLoader').width();
+                  });
+                  $(document).on('page:load', function() {
+                    return window.wedgePjaxLoader.restoreLoader();
+                  });
+                  $(document).on('page:restore', function() {
+                    $('#wedgePjaxLoader').remove();
+                    return window.wedgePjaxLoader.restoreLoader();
+                  });
+                }
+                if (settings.ajax) {
+                  $(document).ajaxComplete(function(e) {
+                    $('#wedgePjaxLoader').remove();
+                    return window.wedgePjaxLoader.restoreLoader();
+                  });
+                  $(document).ajaxStart(function() {
+                    return window.wedgePjaxLoader.startLoader();
+                  });
+                }
+                return window.wedgePjaxLoader = {
+                  sliderWidth: 0,
+                  startLoader: function() {
+                    $('#wedgePjaxLoader').remove();
+                    return $('<div/>', {
+                      id: 'wedgePjaxLoader'
+                    }).appendTo('body').animate({
+                      width: $(document).width() * .4
+                    }, 2000).animate({
+                      width: $(document).width() * .6
+                    }, 6000).animate({
+                      width: $(document).width() * .90
+                    }, 10000).animate({
+                      width: $(document).width() * .99
+                    }, 20000);
+                  },
+                  restoreLoader: function() {
+                    return $('<div/>', {
+                      id: 'wedgePjaxLoader'
+                    }).css({
+                      width: window.wedgePjaxLoader.sliderWidth
+                    }).appendTo('body').animate({
+                      width: $(document).width()
+                    }, 500).fadeOut(function() {
+                      return $(this).remove();
+                    });
+                  }
+                };
+              };
+            })(jQuery);
+
+          }).call(this);
+        }
+        `$(window).wedgeLoadingBar({turbolinks: true, ajax: false})`
+      end
+
       on :history_change do |e|
         if e.data.pjax
-          progress_bar.start
-          `$(document).trigger('page:request')`
+          `$(document).trigger('page:fetch')`
           HTTP.get(e.url) do |response|
+            `$(document).trigger('page:receive')`
             res  = Native(response.xhr)
             html = res.responseText
+            # grab title
+            if title = dom.find('head title')
+              matches = html.match(/(<title[^>]*>)((.|[\n\r])*)<\/title>/im)
+              title.text matches[2]
+            end
             # grab and add the body
-            matches = html.match(/<body[^>]*>((.|[\n\r])*)<\/body>/im)
-            dom.find('body').html matches[1]
+            matches = html.match(/(<body[^>]*>)((.|[\n\r])*)<\/body>/im)
+            # grab the body attributes and set them
+            attr_str = matches[1].gsub(/(^<body|>$)/, '').strip
+            body = Element['<body/>']
+            attr_matches = attr_str.scan(/([a-z\-]*)(?:=)((?:')[^']*(?:')|(?:")[^"]*(?:"))/im)
+            attr_matches.each do |match|
+              k, v = match
+              body.attr(k, v.gsub(/(^("|')|("|')$)/, ''))
+            end
+            body.html matches[2]
+            dom.find('body').replace_with body
             # grab and eval the scripts
             matches = html.match(/<script>((.|[\n\r])*)<\/script>/im)
             # `eval(#{matches[0]})`
@@ -55,7 +134,6 @@ module Wedge
               script = script.strip.sub('</html>', '').sub('<script>', '')
               `jQuery.globalEval(script);`
             end
-            progress_bar.finish
             `$('html, body').animate({ scrollTop: 0 }, 0); $(document).trigger('page:load');`
           end
         end

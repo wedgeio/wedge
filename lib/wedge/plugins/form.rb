@@ -339,6 +339,14 @@ module Wedge
         _attributes.empty?
       end
 
+      def wedge_config
+        @wedge_config ||= begin
+          c = super
+          c.skip_method_wrap
+          c
+        end
+      end
+
       module InstanceMethods
         def render_fields data, options = {}
           data = data.is_a?(Hash) ? data.to_obj : data

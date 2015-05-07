@@ -2,15 +2,18 @@ module Wedge
   class Component
     include Methods
 
-    ALLOWED_CLIENT_OPTS = %i(name path_name method_args method_called cache tmpl key cache_assets assets_key assets_url assets_url_with_host requires)
+    ALLOWED_CLIENT_OPTS = %i(name path_name method_args method_called cache tmpl key cache_assets assets_key assets_url assets_url_with_host requires skip_method_wrap on_server_methods)
 
     class << self
       # Override the default new behaviour
       def new(*args, &block)
-        obj = allocate
-
+        obj                 = allocate
         obj.wedge_opts.js   = args.delete(:js)
         obj.wedge_opts.init = args.delete(:init)
+
+        if args.any? && obj.wedge_opts.skip_method_wrap
+          obj.wedge_opts.init = args
+        end
 
         # Merge other args into opts
         args.each { |a| a.each {|k, v| obj.wedge_opts[k] = v } } if args.any?
@@ -34,7 +37,7 @@ module Wedge
         end
 
         # don't need to wrap the method if it's opal
-        unless RUBY_ENGINE == 'opal' || wedge_opts.methods_wrapped
+        unless RUBY_ENGINE == 'opal' || wedge_opts.methods_wrapped || wedge_opts.skip_method_wrap
           obj.wedge_opts.methods_wrapped = wedge_opts.methods_wrapped = true
 
           public_instance_methods(false).each do |meth|
@@ -185,7 +188,26 @@ module Wedge
 
       def wedge_on_server(&block)
         if server?
+          m = Module.new(&block)
+
           yield
+
+          m.public_instance_methods(false).each do |meth|
+            wedge_opts.on_server_methods << meth.to_s
+
+            alias_method :"wedge_on_server_#{meth}", :"#{meth}"
+            define_method "#{meth}" do |*args, &blk|
+              o_name = "wedge_on_server_#{meth}"
+
+              if method(o_name).parameters.length > 0
+                result = send(o_name, *args, &block)
+              else
+                result = send(o_name, &block)
+              end
+
+              blk ? blk.call(result) : result
+            end
+          end
         else
           m = Module.new(&block)
 
@@ -214,7 +236,7 @@ module Wedge
 
                   # We set the new csrf token
                   xhr  = Native(response.xhr)
-                  csrf = xhr.getResponseHeader('BIO-CSRF-TOKEN')
+                  csrf = xhr.getResponseHeader('WEDGE-CSRF-TOKEN')
                   Element.find('meta[name=_csrf]').attr 'content', csrf
                   ###########################
 

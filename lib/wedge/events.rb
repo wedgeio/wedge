@@ -26,7 +26,7 @@ module Wedge
         end
       end
 
-      if event[:name].to_s == 'ready' || event[:name] =~ /[:\s]/ || event[:selector]
+      if %w(ready history_change).include?(event[:name].to_s) || event[:name] =~ /[:\s]/ || event[:selector]
         browser_events << event
       else
         event[:component] = scope.wedge_opts.name
@@ -73,7 +73,7 @@ module Wedge
         el = Element.find(event[:selector] != '' ? event[:selector] : 'body')
 
         comp.instance_exec el, &event[:block]
-      when  event[:name].to_s == 'history_change'
+      when event[:name].to_s == 'history_change'
         $window.history.change do |he|
           comp.instance_exec he, &event[:block]
         end

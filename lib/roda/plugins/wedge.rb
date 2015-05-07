@@ -75,7 +75,7 @@ class Roda
                 res = scope.wedge(name, data).send(method_called, *method_args) || ''
               end
 
-              scope.response.headers["BIO-CSRF-TOKEN"] = scope.csrf_token if scope.methods.include? :csrf_token
+              scope.response.headers["WEDGE-CSRF-TOKEN"] = scope.csrf_token if scope.methods.include? :csrf_token
 
               if res.is_a? Hash
                 scope.response.headers["Content-Type"] = 'application/json; charset=UTF-8'

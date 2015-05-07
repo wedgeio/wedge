@@ -14,6 +14,8 @@ module Wedge
     end
 
     def initialize html
+      html = '' if html.nil?
+
       @raw_html = html
 
       if server?

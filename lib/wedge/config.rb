@@ -22,6 +22,7 @@ module Wedge
         scope: false,
         loaded: false,
         requires: [],
+        skip_method_wrap: false,
         on: [],
         on_server_methods: [],
         object_events: {},
@@ -82,6 +83,10 @@ module Wedge
 
     def opts_dup
       opts.to_h.inject({}) {|copy, (key, value)| copy[key] = value.dup rescue value; copy}
+    end
+
+    def skip_method_wrap
+      opts.skip_method_wrap = true
     end
 
     %w(scope assets_url assets_url_with_host cache_assets assets_key debug).each do |m|
