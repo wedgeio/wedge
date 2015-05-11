@@ -256,7 +256,7 @@ module Wedge
 
           keys.each do |k|
             begin
-              value = value ? value.send(k) : send(k)
+              value = value != false ? value.send(k) : send(k)
             rescue
               value = ''
             end
