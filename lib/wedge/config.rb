@@ -1,139 +1,54 @@
-require 'ostruct'
-require 'wedge/events'
-
 module Wedge
   class Config
     include Methods
 
+    ALLOWED_CLIENT_OPTS = %i(name path_name method_args method_called cache tmpl key cache_assets assets_key assets_url assets_url_with_host requires skip_method_wrap on_server_methods)
+
     # Stores the options for the config
     #
     # @return [OpenStruct]
-    attr_accessor :opts
+    attr_accessor :data
 
     # Setup initial opts values
     #
     # @param opts [Hash] The initial params for #opts.
     def initialize(opts = {})
-      opts = {
-        cache_assets: false,
-        cache: IndifferentHash.new,
-        assets_key: false,
-        tmpl: IndifferentHash.new,
-        scope: false,
-        loaded: false,
-        requires: [],
-        skip_method_wrap: false,
-        on: [],
-        on_server_methods: [],
-        object_events: {},
-        is_plugin: false,
+      @data = HashObject.new({
+        name: nil,
+        path: nil,
+        html: nil,
+        scope: nil,
         assets_url: '/assets/wedge',
-        plugins: []
-      }.merge opts
-
-      @opts = OpenStruct.new(opts)
+        assets_key: false,
+        cache_assets: false,
+        is_plugin: false,
+        store: IndifferentHash.new,
+        tmpl: IndifferentHash.new,
+        on_block: [],
+        server_method: [],
+      }.merge(opts))
     end
 
-    # Set the unique name of the component
-    #
-    # @param name [<String, Symbol>, #to_sym]
-    def name(*names)
-      names.each do |name|
-        opts.name = name.to_sym
-        opts.is_plugin = true if name.to_s =~ /_plugin$/
-        Wedge.components ||= {}
-        Wedge.components[opts.name] = opts
-      end
-    end
-
-    def is_plugin?
-      opts.is_plugin
-    end
-
-    # Used to set and update the dom
-    def dom
-      if server?
-        yield
-      end
-    end
-    alias_method :setup, :dom
-
-    # Set the raw html
-    # @param html [String]
-    def html(html)
-      unless RUBY_ENGINE == 'opal'
-        opts.html = begin
-          File.read html
-        rescue
-          html
-        end.strip
-      end
-    end
-
-    def requires(*args)
-      unless RUBY_ENGINE == 'opal'
-        args.each do |a|
-          if a.to_s[/_plugin$/]
-            require "wedge/plugins/#{a.to_s.gsub(/_plugin$/, '')}"
-          end
-          opts.requires << a
-        end
-      end
-    end
-
-    def opts_dup
-      opts.to_h.inject({}) {|copy, (key, value)| copy[key] = value.dup rescue value; copy}
-    end
-
-    def skip_method_wrap
-      opts.skip_method_wrap = true
-    end
-
-    %w(scope assets_url assets_url_with_host cache_assets assets_key debug).each do |m|
-      define_method m do |v|
-        opts[m] = v
-      end
+    def client_data
+      @data.dup.select {|k, v| ALLOWED_CLIENT_OPTS.include? k }
     end
 
     def plugin(name)
       unless RUBY_ENGINE == 'opal'
         require "wedge/plugins/#{name}"
-        klass = Wedge.components[:"#{name}_plugin"].klass
-        Wedge::Component.include(klass::InstanceMethods) if defined?(klass::InstanceMethods)
-        Wedge::Component.extend(klass::ClassMethods) if defined?(klass::ClassMethods)
       end
+
+      klass = Wedge.config.component_class[:"#{name}_plugin"]
+      Wedge::Component.include(klass::InstanceMethods) if defined?(klass::InstanceMethods)
+      Wedge::Component.extend(klass::ClassMethods) if defined?(klass::ClassMethods)
     end
 
-    def get_requires(requires = false, previous_requires = [])
-      list = []
-
-      unless requires
-        requires ||= opts.requires.dup
-        previous_requires << opts.name.to_sym
+    def method_missing(method, *args, &block)
+      if @data.respond_to?(method, true)
+        @data.send method, *args, &block
+      else
+        super
       end
-
-      previous_requires.each { |p| requires.delete(p) }
-
-      requires.each do |r|
-        begin
-          klass = Wedge.components[r.to_sym].klass
-        rescue
-          raise "No component named: #{r}"
-        end
-        o = klass.client_wedge_opts.select do |k, v|
-          %w(path_name name requires).include? k.to_s
-        end
-
-        # We don't want to get a stack limit error so we stop something
-        # requiring itself
-        pr = previous_requires.dup << o[:name].to_sym
-
-        o[:requires] = get_requires o[:requires].dup, pr if o[:requires].present?
-
-        list << o
-      end
-
-      list
     end
   end
 end

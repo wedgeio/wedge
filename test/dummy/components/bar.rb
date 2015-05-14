@@ -1,7 +1,9 @@
+require_relative 'root'
+require_relative 'base'
+
 class DummyApp
   class BarComponent < Wedge::Component
-    config.name :bar
-    config.requires :root, :base
+    name :bar
 
     def moo
       'cow'

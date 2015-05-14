@@ -4,7 +4,7 @@ require 'forwardable'
 module Wedge
   module Plugins
     class Form < Component
-      config.name :form_plugin
+      name :form_plugin
 
       include Methods
       include Validations

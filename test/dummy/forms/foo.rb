@@ -1,6 +1,7 @@
+require_relative 'bar'
+
 class DummyApp
   class FooForm < Wedge::Plugins::Form
-    config.name :foo_form
-    config.requires :bar_form
+    name :foo_form
   end
 end

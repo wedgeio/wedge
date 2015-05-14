@@ -1,8 +1,8 @@
 require_relative 'test_helper'
 
-class BasicComponent < wedge::Component
-  config.name :basic
-  config.html <<-HTML
+class BasicComponent < Wedge::Component
+  name :basic
+  html <<-HTML
     <!DOCTYPE html>
     <html>
       <body>
@@ -10,7 +10,7 @@ class BasicComponent < wedge::Component
       </body>
     </html>
   HTML
-  config.dom do
+  dom do
     tmpl :foo, dom.find('#foo')
   end
 
@@ -29,6 +29,6 @@ class TestComponent < Minitest::Test
   end
 
   def test_returning_js
-    assert wedge(:basic, :js).foo[/Opal/]
+    assert wedge(:basic).to_js(:foo)[/Opal/]
   end
 end

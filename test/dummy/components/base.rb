@@ -1,5 +1,5 @@
 class DummyApp
   class BaseComponent < Wedge::Component
-    config.name :base
+    name :base
   end
 end

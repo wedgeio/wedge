@@ -11,11 +11,12 @@ if RUBY_ENGINE == 'opal'
   end
 end
 
+require 'wedge/plugins/history'
+
 module Wedge
   module Plugins
     class Pjax < Component
-      config.name :pjax, :pjax_plugin
-      config.requires :history_plugin
+      name :pjax, :pjax_plugin
 
       def get href = false
         `$(document).trigger('page:get')`

@@ -31,7 +31,7 @@ module Wedge
       else
         event[:component] = scope.wedge_opts.name
 
-        if !scope.class.wedge_opts.added_class_events && for_component = event[:options].delete(:for)
+        if for_component = event[:options].delete(:for)
           wedge_opts = Wedge.components[for_component].klass.wedge_opts
           events = wedge_opts.object_events[event.delete(:name)] ||= []
           events << event

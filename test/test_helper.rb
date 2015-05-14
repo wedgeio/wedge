@@ -18,8 +18,8 @@ module Minitest
       @_session ||= OpenStruct.new
     end
 
-    def wedge(*args)
-      wedge[*args]
+    def wedge(name, *args, &block)
+      Wedge[name, nil, *args, &block]
     end
 
     # def app(*args)

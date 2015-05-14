@@ -14,6 +14,7 @@ unless RUBY_ENGINE == 'opal'
 end
 require 'wedge/html'
 require 'wedge/dom'
+require 'wedge/events'
 require 'wedge/config'
 require 'wedge/component'
 
@@ -21,20 +22,13 @@ module Wedge
   include Methods
 
   class << self
-    attr_accessor :requires, :loaded_requires, :loaded_requires_events, :javascript_cache,
-      :wedge_javascript_loaded, :object_events, :browser_events, :events_triggered
-
-    def compile_opal
-      javascript
-    end
-
     def assets_url
-      url = opts.assets_url.gsub(%r{^(http(|s)://[^\/]*\/|\/)}, '/')
-      "#{url}#{opts.cache_assets ? "/#{opts.assets_key}" : ''}"
+      url = config.assets_url.gsub(%r{^(http(|s)://[^\/]*\/|\/)}, '/')
+      "#{url}#{config.cache_assets ? "/#{config.assets_key}" : ''}"
     end
 
     def assets_url_with_host
-      "#{opts.assets_url}#{opts.cache_assets ? "/#{opts.assets_key}" : ''}"
+      "#{config.assets_url}#{config.cache_assets ? "/#{config.assets_key}" : ''}"
     end
 
     def script_tag
@@ -48,14 +42,18 @@ module Wedge
     #
     # @param name [String, Symbol, #to_s] The unique name given to a component.
     # @return [Wedge::Component#method] Last line of the method called.
-    def [](name, *args)
-      component = components[name.to_sym]
+    def [](name, scope, *args, &block)
+      wedge_class = config.component_class[name]
+      klass = Class.new(wedge_class)
+      # need to add the data to this anonymous class
+      klass.config.data = HashObject.new wedge_class.config.data.dup
+      klass.config.scope = scope
 
-      component.klass.new(*args)
-    end
-
-    def components
-      @components ||= OpenStruct.new
+      if args.any?
+        klass.new(*args)
+      else
+        klass.new
+      end
     end
 
     unless RUBY_ENGINE == 'opal'
@@ -64,8 +62,7 @@ module Wedge
       # @param path [String] require path to file to build.
       # @return [String, Opal::Builder#build]
       def build(path = 'wedge', options = {})
-        append_paths
-        Opal::Builder.build(path, options)
+        Opal::Builder.build(path, options) if append_paths
       end
 
       # Source maps for the javascript
@@ -78,13 +75,15 @@ module Wedge
       # @return [Array] List of opal paths.
       def append_paths
         @append_paths ||= begin
-          file     = method(:components).source_location.first.sub('/wedge.rb', '')
+          file     = method(:assets_url).source_location.first.sub('/wedge.rb', '')
           gems_dir = ::Opal.gem_dir.gsub(/(?<=gems)\/opal-.*/, '')
           Wedge::Opal.append_path file
           Wedge::Opal.append_path Dir.pwd
           Dir["#{gems_dir}/**/"].sort.each do |folder|
             Wedge::Opal.append_path "#{folder}/lib"
           end
+
+          true
         end
       end
     end
@@ -241,25 +240,12 @@ module Wedge
       promise
     end
 
-    # Used to setup the component with default options.
-    #
-    # @example
-    #   class SomeComponent < Component
-    #     setup do |config|
-    #       config.name :some
-    #     end
-    #   end
-    # @yield [Config]
-    def setup(&block)
-      block.call config if block_given?
-    end
-
     def config
       @config ||= begin
-        args = { klass: self }
+        args = { klass: self, component_class: IndifferentHash.new, requires: IndifferentHash.new }
 
         unless RUBY_ENGINE == 'opal'
-          args[:file_path]  = caller.first.gsub(/(?<=\.rb):.*/, '')
+          args[:path]       = caller.first.gsub(/(?<=\.rb):.*/, '')
           args[:assets_key] = begin
             if defined?(PlatformAPI) && ENV['HEROKU_TOKEN'] && ENV['HEROKU_APP']
               heroku = PlatformAPI.connect_oauth(ENV['HEROKU_TOKEN'], default_headers: {'Range' => 'version ..; order=desc'})
@@ -273,10 +259,6 @@ module Wedge
 
         Config.new(args)
       end
-    end
-
-    def opts
-      config.opts
     end
   end
 end

@@ -16,6 +16,7 @@ class Hash
       ## create the setter that sets the instance variable
       self.class.send(:define_method, "#{k}=", proc{|v| self.instance_variable_set("@#{k}", v)})
     end
+
     return self
   end
 
@@ -73,5 +74,32 @@ class Hash
 
   def indifferent
     Wedge::IndifferentHash.new self
+  end
+end
+
+class HashObject
+  def initialize(hash = {})
+    hash.each do |k,v|
+      if v.kind_of? Hash
+        self.instance_variable_set("@#{k}", HashObject.new(v))
+      end
+
+      self.instance_variable_set("@#{k}", v)
+      self.class.send(:define_method, k, proc{self.instance_variable_get("@#{k}")})
+      self.class.send(:define_method, "#{k}=", proc{|vv| self.instance_variable_set("@#{k}", vv)})
+    end
+  end
+
+  def to_h
+    hash_to_return = Wedge::IndifferentHash.new
+    self.instance_variables.each do |var|
+      value = self.instance_variable_get(var)
+      hash_to_return[var.to_s.gsub("@","")] = value.is_a?(HashObject) ? value.to_h : value
+    end
+    return hash_to_return
+  end
+
+  def dup
+    self.to_h.inject({}) {|copy, (key, value)| copy[key] = value.dup rescue value; copy}
   end
 end

@@ -1,7 +1,7 @@
 module Wedge
   module Plugins
     class History < Component
-      config.name :history_plugin
+      name :history_plugin
     end
   end
 end

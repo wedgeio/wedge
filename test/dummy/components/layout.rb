@@ -1,7 +1,7 @@
 class DummyApp
   class LayoutComponent < Wedge::Component
-    config.name :layout
-    config.html <<-HTML
+    name :layout
+    html <<-HTML
       <!DOCTYPE html>
       <html>
         <head>
@@ -12,7 +12,7 @@ class DummyApp
         </body>
       </html>
     HTML
-    config.dom do
+    dom do
       dom.find('body') << assets(:js)
     end
 

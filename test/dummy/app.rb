@@ -7,6 +7,19 @@ require 'awesome_print'
 ROOT_PATH = File.dirname(__FILE__)
 
 class DummyApp < Roda
+
+  plugin :environments
+
+  configure :development do
+    require 'better_errors'
+
+    use BetterErrors::Middleware if defined? BetterErrors
+    use Rack::Static, urls: ["/public"]
+
+    BetterErrors::Middleware.allow_ip! "0.0.0.0/0"
+    BetterErrors.application_root = Dir.pwd
+  end
+
   plugin :wedge, {
     scope: self,
     plugins: [:form]
@@ -23,12 +36,10 @@ class DummyApp < Roda
     r.wedge_assets
 
     r.root do
-      wedge(:root, :js).display
+      wedge(:root).to_js :display
     end
   end
 end
 
 Dir["#{ROOT_PATH}/forms/*.rb"].sort.each { |file| require file }
 Dir["#{ROOT_PATH}/components/*.rb"].sort.each { |file| require file }
-
-Wedge.compile_opal # cache files on app load

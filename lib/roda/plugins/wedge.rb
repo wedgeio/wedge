@@ -16,20 +16,19 @@ class Roda
             v.each { |p| ::Wedge.config.plugin p }
           when 'scope'
             begin
-              ::Wedge.config.opts[:scope] = v.new
+              ::Wedge.config.scope = v.new
             rescue
-              ::Wedge.config.opts[:scope] = v.new({})
+              ::Wedge.config.scope = v.new({})
             end
           else
-            ::Wedge.config.opts[k.to_sym] = v
+            ::Wedge.config.send k, v
           end
         end
       end
 
       module InstanceMethods
-        def wedge(*args)
-          args << { scope: self }
-          ::Wedge[*args]
+        def wedge(name, *args, &block)
+          ::Wedge[name, self, *args, &block]
         end
       end
 
@@ -48,7 +47,7 @@ class Roda
               ::Wedge.source_map component
             when 'rb'
               if component =~ /^wedge/
-                path = ::Wedge.opts.file_path.gsub(/\/wedge.rb$/, '')
+                path = ::Wedge.config.path.gsub(/\/wedge.rb$/, '')
                 File.read("#{path}/#{component}.rb")
               else
                 File.read("#{ROOT_PATH}/#{component}.rb")

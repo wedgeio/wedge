@@ -1,10 +1,14 @@
-require_relative 'base' unless RUBY_ENGINE == 'opal'
+require 'wedge/plugins/pjax'
+require 'wedge/plugins/form'
+
+require_relative 'base'
+require_relative 'bar'
+require_relative '../forms/foo'
 
 class DummyApp
   class RootComponent < BaseComponent
-    config.name :root
-    config.requires :base, :bar, :foo_form, :pjax_plugin
-    config.html "<div id='foo'>bar</div>"
+    name :root
+    html "<div id='foo'>bar</div>"
 
     def display
       if server?
