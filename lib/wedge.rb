@@ -105,14 +105,10 @@ module Wedge
             # We need to merge in some data that is only set on the server.
             # i.e. path, assets_key etc....
             js << Opal.compile("Wedge.config.data = HashObject.new(JSON.parse(Base64.decode64('#{compiled_data}')).merge Wedge.config.data.to_h)")
+            # load all global plugins into wedge
             config.plugins.each do |path|
               js << Wedge.javascript(path)
             end
-          else
-          #   comp = Wedge.config.component_class[path_name.gsub(/\//, '__')]
-          #   compiled_data = Base64.encode64 comp.config.client_data.to_json
-          #   comp_name = comp.config.name
-          #   js << Opal.compile("Wedge.config.component_class.data = HashObject.new(JSON.parse(Base64.decode64('#{compiled_data}')).merge Wedge.config.data.to_h)")
           end
 
           js

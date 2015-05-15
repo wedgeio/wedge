@@ -16,7 +16,6 @@ module Wedge
           end
 
           args.each do |name|
-            puts name
             # set the name
             wedge_config.name = name
 
