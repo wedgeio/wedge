@@ -1,5 +1,3 @@
-require 'wedge/require'
-
 module Wedge
   class Component
     include Methods
