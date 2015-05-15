@@ -142,7 +142,10 @@ module Wedge
               payload[:wedge_method_called] = meth
               payload[:wedge_method_args]   = args
 
-              call_url = "#{Wedge.assets_url}/#{path_name}.call"
+              # we want to remove the assets key from the call so we don't get
+              # an error if they assets_key has changed and the user hasn't
+              # refreshed the browser yet.
+              call_url = "#{Wedge.assets_url.sub("#{Wedge.config.assets_key}/")}/#{path_name}.call"
 
               HTTP.post(call_url,
                 headers: {

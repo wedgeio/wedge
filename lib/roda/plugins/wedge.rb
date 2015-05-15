@@ -24,6 +24,9 @@ class Roda
             ::Wedge.config.send "#{k}=", v
           end
         end
+
+        # cache the javascript on load
+        Wedge.javascript if opts[:cache_assets]
       end
 
       module InstanceMethods
@@ -35,7 +38,9 @@ class Roda
       module RequestClassMethods
         def wedge_route_regex
           assets_url = ::Wedge.assets_url.gsub(%r{^\/}, '')
-          %r{#{assets_url}/(.*)\.(.*)$}
+          # # We also allow for no assets key so when we post server methods there
+          # # isn't an error if the key has been changed since a browser refresh.
+          %r{(?:#{assets_url}|#{assets_url.sub("#{::Wedge.config.assets_key}/", '')})/(.*)\.(.*)$}
         end
       end
 
