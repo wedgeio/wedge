@@ -1,6 +1,6 @@
 module Wedge
   class Events
-    attr_accessor :scope, :events
+    attr_accessor :events
 
     VIP_ORDER_LIST = %w(history_change)
 
