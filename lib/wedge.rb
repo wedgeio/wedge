@@ -109,6 +109,11 @@ module Wedge
             config.plugins.each do |path|
               js << Wedge.javascript(path)
             end
+          else
+            comp = Wedge.config.component_class[path_name.gsub(/\//, '__')]
+            compiled_data = Base64.encode64 comp.config.client_data.to_json
+            comp_name = comp.config.name
+            js << Opal.compile("Wedge.config.component_class[:#{comp_name}].config.data = HashObject.new(JSON.parse(Base64.decode64('#{compiled_data}')).merge Wedge.config.data.to_h)")
           end
 
           js

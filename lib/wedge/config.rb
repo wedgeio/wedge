@@ -26,7 +26,7 @@ module Wedge
         on_block: [],
         server_method: [],
         plugins: [],
-        allowed_client_data: %w(name path method_args method_called cache tmpl key cache_assets assets_key assets_url assets_url_with_host requires skip_method_wrap server_methods)
+        allowed_client_data: %w(name path method_args method_called cache tmpl key cache_assets assets_key assets_url assets_url_with_host)
       }.merge(opts))
     end
 
