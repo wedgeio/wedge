@@ -1,5 +1,4 @@
 require 'wedge/plugins/pjax'
-require 'wedge/plugins/form'
 
 require_relative 'base'
 require_relative 'bar'

@@ -16,15 +16,18 @@ module Wedge
           end
 
           args.each do |name|
+            puts name
             # set the name
             wedge_config.name = name
+
             unless RUBY_ENGINE == 'opal'
               # set the file path
               wedge_config.path = path
               # add it to the component class list allow path or name
-              Wedge.config.component_class[name] = self
               Wedge.config.component_class[path.gsub(/\//, '__')] = self
             end
+
+            Wedge.config.component_class[name] = self
           end
         else
           original_name
@@ -248,10 +251,13 @@ module Wedge
     end
     alias_method :from_client?, :wedge_from_client?
 
-    def wedge_javascript
+    def wedge_javascript(method = false, *args)
       return unless server?
 
-      compiled_opts = Base64.encode64 config.client_data.to_json
+      client_data = config.client_data.dup
+      client_data.merge! method_called: method, method_args: args
+
+      compiled_opts = Base64.encode64 client_data.to_json
       javascript = <<-JS
         Wedge.javascript('#{config.path}', JSON.parse(Base64.decode64('#{compiled_opts}')))
       JS
@@ -264,10 +270,10 @@ module Wedge
     end
     alias_method :trigger, :wedge_trigger
 
-    def to_js(name = false, *args)
-      response = args.any? ? send(name, *args) : send(name)
+    def to_js(method = false, *args)
+      response = args.any? ? send(method, *args) : send(method)
       response = response.to_html if response.is_a? DOM
-      response << wedge_javascript if response.is_a? String
+      response << wedge_javascript(method, *args) if response.is_a? String
       response
     end
 

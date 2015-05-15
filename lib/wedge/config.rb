@@ -25,6 +25,7 @@ module Wedge
         tmpl: IndifferentHash.new,
         on_block: [],
         server_method: [],
+        plugins: [],
         allowed_client_data: %w(name path method_args method_called cache tmpl key cache_assets assets_key assets_url assets_url_with_host requires skip_method_wrap server_methods)
       }.merge(opts))
     end
@@ -39,6 +40,7 @@ module Wedge
       end
 
       klass = Wedge.config.component_class[:"#{name}_plugin"]
+      plugins << klass.config.path unless plugins.include? klass.config.path
       Wedge::Component.include(klass::InstanceMethods) if defined?(klass::InstanceMethods)
       Wedge::Component.extend(klass::ClassMethods) if defined?(klass::ClassMethods)
     end

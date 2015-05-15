@@ -35,8 +35,10 @@ module Wedge
       "<script src='#{assets_url}/wedge.js'></script>"
     end
 
-    def javascript_cache
-      @javascript_cache ||= IndifferentHash.new
+    unless RUBY_ENGINE == 'opal'
+      def javascript_cache
+        @javascript_cache ||= IndifferentHash.new
+      end
     end
 
     # Used to call a component.
@@ -48,7 +50,7 @@ module Wedge
     # @return [Wedge::Component#method] Last line of the method called.
     def [](name, scope = nil, *args, &block)
       wedge_class = config.component_class[name]
-      klass = Class.new(wedge_class)
+      klass       = Class.new(wedge_class)
       # need to add the data to this anonymous class
       klass.config.data = HashObject.new wedge_class.config.data.dup
       klass.config.scope = scope
@@ -96,15 +98,22 @@ module Wedge
     def javascript(path_name = 'wedge', options = {})
       if server?
         javascript_cache[path_name] ||= begin
+          js = build(path_name, options).javascript
+
           if path_name == 'wedge'
             compiled_data = Base64.encode64 config.client_data.to_json
+            # We need to merge in some data that is only set on the server.
+            # i.e. path, assets_key etc....
+            js << Opal.compile("Wedge.config.data = HashObject.new(JSON.parse(Base64.decode64('#{compiled_data}')).merge Wedge.config.data.to_h)")
+            config.plugins.each do |path|
+              js << Wedge.javascript(path)
+            end
           else
-            comp = Wedge.config.component_class[path_name.gsub(/\//, '__')]
-            compiled_data = Base64.encode64 comp.config.client_data.to_json
+          #   comp = Wedge.config.component_class[path_name.gsub(/\//, '__')]
+          #   compiled_data = Base64.encode64 comp.config.client_data.to_json
+          #   comp_name = comp.config.name
+          #   js << Opal.compile("Wedge.config.component_class.data = HashObject.new(JSON.parse(Base64.decode64('#{compiled_data}')).merge Wedge.config.data.to_h)")
           end
-
-          js = build(path_name, options).javascript
-          js << Opal.compile("Wedge.config.data = HashObject.new(JSON.parse(Base64.decode64('#{compiled_data}')))")
 
           js
         end
@@ -113,7 +122,13 @@ module Wedge
         cache = options[:cache_assets]
 
         `jQuery.ajax({ url: url, dataType: "script", cache: cache }).done(function() {`
-          puts 'success'
+          comp = Wedge[options[:name]]
+
+          if options[:method_args].any?
+            comp.send(options[:method_called], options[:method_args])
+          else
+            comp.send(options[:method_called])
+          end
          `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); })`
       end
     end

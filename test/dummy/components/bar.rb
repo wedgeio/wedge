@@ -1,5 +1,4 @@
 require_relative 'root'
-require_relative 'base'
 
 class DummyApp
   class BarComponent < Wedge::Component
