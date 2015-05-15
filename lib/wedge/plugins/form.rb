@@ -250,13 +250,14 @@ module Wedge
 
         dom.find('input, select, textarea') do |element|
           name  = element['name']
+          next if name.nil?
           name  = name.gsub(/\A#{key}/, '') if key
           keys  = name.gsub(/\A\[/, '').gsub(/[^a-z0-9_]/, '|').gsub(/\|\|/, '|').gsub(/\|$/, '').split('|')
           value = false
 
           keys.each do |k|
             begin
-              value = value ? value.send(k) : send(k)
+              value = value != false ? value.send(k) : send(k)
             rescue
               value = ''
             end
