@@ -188,10 +188,10 @@ module Wedge
     end
     alias_method :scope, :wedge_scope
 
-    def wedge_cache
-      wedge_config.cache
+    def wedge_store
+      wedge_config.store
     end
-    alias_method :cache, :wedge_cache
+    alias_method :store, :wedge_store
 
     # Duplicate of class condig [Config]
     # @return config [Config]
