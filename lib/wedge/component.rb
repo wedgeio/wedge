@@ -4,23 +4,30 @@ module Wedge
   class Component
     include Methods
 
-    ALLOWED_CLIENT_OPTS = %i(name path_name method_args method_called cache tmpl key cache_assets assets_key assets_url assets_url_with_host requires skip_method_wrap on_server_methods)
-
     class << self
+      alias_method :original_name, :name
       def wedge_name(*args)
         if args.any?
+          unless RUBY_ENGINE == 'opal'
+            # set the file path
+            path = "#{caller[0]}".gsub(/(?<=\.rb):.*/, '')
+                .gsub(%r{(#{Dir.pwd}/|.*(?=wedge))}, '')
+                .gsub(/\.rb$/, '')
+          end
+
           args.each do |name|
             # set the name
             wedge_config.name = name
-            # set the file path
-            wedge_config.path = caller.first.gsub(/(?<=\.rb):.*/, '')
-              .gsub(%r{(#{Dir.pwd}/|.*(?=wedge))}, '')
-              .gsub(/\.rb$/, '')
-            # add it to the component class list
-            Wedge.config.component_class[name] = self
+            unless RUBY_ENGINE == 'opal'
+              # set the file path
+              wedge_config.path = path
+              # add it to the component class list allow path or name
+              Wedge.config.component_class[name] = self
+              Wedge.config.component_class[path.gsub(/\//, '__')] = self
+            end
           end
         else
-          super
+          original_name
         end
       end
       alias_method :name, :wedge_name
@@ -243,6 +250,7 @@ module Wedge
 
     def wedge_javascript
       return unless server?
+
       compiled_opts = Base64.encode64 config.client_data.to_json
       javascript = <<-JS
         Wedge.javascript('#{config.path}', JSON.parse(Base64.decode64('#{compiled_opts}')))

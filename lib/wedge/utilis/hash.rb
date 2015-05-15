@@ -100,6 +100,6 @@ class HashObject
   end
 
   def dup
-    self.to_h.inject({}) {|copy, (key, value)| copy[key] = value.dup rescue value; copy}
+    Wedge::IndifferentHash.new self.to_h.inject({}) {|copy, (key, value)| copy[key] = value.dup rescue value; copy}
   end
 end

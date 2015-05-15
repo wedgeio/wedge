@@ -2,8 +2,6 @@ module Wedge
   class Config
     include Methods
 
-    ALLOWED_CLIENT_OPTS = %i(name path_name method_args method_called cache tmpl key cache_assets assets_key assets_url assets_url_with_host requires skip_method_wrap on_server_methods)
-
     # Stores the options for the config
     #
     # @return [OpenStruct]
@@ -18,6 +16,7 @@ module Wedge
         path: nil,
         html: nil,
         scope: nil,
+        debug: false,
         assets_url: '/assets/wedge',
         assets_key: false,
         cache_assets: false,
@@ -26,11 +25,12 @@ module Wedge
         tmpl: IndifferentHash.new,
         on_block: [],
         server_method: [],
+        allowed_client_data: %w(name path method_args method_called cache tmpl key cache_assets assets_key assets_url assets_url_with_host requires skip_method_wrap server_methods)
       }.merge(opts))
     end
 
     def client_data
-      @data.dup.select {|k, v| ALLOWED_CLIENT_OPTS.include? k }
+      @data.dup.select {|k, v| allowed_client_data.include? k }
     end
 
     def plugin(name)

@@ -22,6 +22,7 @@ class DummyApp < Roda
 
   plugin :wedge, {
     scope: self,
+    debug: true,
     plugins: [:form]
   }
 

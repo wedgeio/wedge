@@ -21,7 +21,7 @@ class Roda
               ::Wedge.config.scope = v.new({})
             end
           else
-            ::Wedge.config.send k, v
+            ::Wedge.config.send "#{k}=", v
           end
         end
       end
@@ -87,7 +87,7 @@ class Roda
             else
               scope.response.headers['Content-Type'] = 'application/javascript; charset=UTF-8'
 
-              if ::Wedge.opts[:debug]
+              if ::Wedge.config.debug
                 "#{::Wedge.javascript(component)}\n//# sourceMappingURL=/assets/wedge/#{component}.map"
               else
                 ::Wedge.javascript(component)
