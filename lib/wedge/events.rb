@@ -21,7 +21,6 @@ module Wedge
       # module once it is loading the class twice. So this stops on events being
       # double added
       return if events[:on_count] >= Wedge[wedge_name].class.wedge_on_count
-
       events[:on_count] += 1
 
       event = {
