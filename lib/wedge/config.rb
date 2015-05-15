@@ -23,12 +23,13 @@ module Wedge
         is_plugin: false,
         triggered_browser_events: false,
         store: IndifferentHash.new,
+        settings: IndifferentHash.new,
         tmpl: IndifferentHash.new,
         on_block: [],
         on_block_count: 0,
         server_method: [],
         plugins: [],
-        allowed_client_data: %w(name path method_args method_called cache tmpl key cache_assets assets_key assets_url assets_url_with_host)
+        allowed_client_data: %w(name path method_args method_called store tmpl key cache_assets assets_key assets_url assets_url_with_host)
       }.merge(opts))
     end
 

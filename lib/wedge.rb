@@ -127,7 +127,7 @@ module Wedge
         cache = options[:cache_assets]
 
         `jQuery.ajax({ url: url, dataType: "script", cache: cache }).done(function() {`
-          comp = Wedge[options[:name]]
+          comp = Wedge[options[:name], options[:store].indifferent]
 
           if options[:method_args].any?
             comp.send(options[:method_called], options[:method_args])

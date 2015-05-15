@@ -7,7 +7,12 @@ module Wedge
 
       def wedge_new(scope, *args, &block)
         obj = allocate
-        obj.config.scope = scope
+
+        if scope.is_a? Hash
+          obj.config.store = scope
+        else
+          obj.config.scope = scope
+        end
 
         if args.any?
           obj.send :initialize, *args, &block
