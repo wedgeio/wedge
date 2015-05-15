@@ -68,18 +68,7 @@ module Wedge
     # @param name [String, Symbol, #to_s] The unique name given to a component.
     # @return [Wedge::Component#method] Last line of the method called.
     def [](name, scope = nil, *args, &block)
-      wedge_class = config.component_class[name]
-      klass       = Class.new(wedge_class)
-      # need to add the data to this anonymous class
-      klass.wedge_on_count = wedge_class.wedge_on_count
-      klass.config.data    = HashObject.new wedge_class.config.data.dup
-      klass.config.scope   = scope
-
-      if args.any?
-        klass.new(*args)
-      else
-        klass.new
-      end
+      config.component_class[name].wedge_new scope, *args, &block
     end
 
     unless RUBY_ENGINE == 'opal'

@@ -5,6 +5,19 @@ module Wedge
     class << self
       attr_accessor :wedge_on_count
 
+      def wedge_new(scope, *args, &block)
+        obj = allocate
+        obj.config.scope = scope
+
+        if args.any?
+          obj.send :initialize, *args, &block
+        else
+          obj.send :initialize, &block
+        end
+
+        obj
+      end
+
       alias_method :original_name, :name
       def wedge_name(*args)
         if args.any?
