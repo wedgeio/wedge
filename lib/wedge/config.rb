@@ -21,9 +21,11 @@ module Wedge
         assets_key: false,
         cache_assets: false,
         is_plugin: false,
+        triggered_browser_events: false,
         store: IndifferentHash.new,
         tmpl: IndifferentHash.new,
         on_block: [],
+        on_block_count: 0,
         server_method: [],
         plugins: [],
         allowed_client_data: %w(name path method_args method_called cache tmpl key cache_assets assets_key assets_url assets_url_with_host)

@@ -41,6 +41,25 @@ module Wedge
       end
     end
 
+    if RUBY_ENGINE == 'opal'
+      def trigger_browser_events
+        config.component_class.each do |k, klass|
+          next if klass.config.triggered_browser_events
+          klass.config.triggered_browser_events = true
+
+          Wedge.trigger klass.config.name, :browser_events
+        end
+      end
+    end
+
+    def trigger(wedge_name, event_name, *args)
+      events.trigger wedge_name, event_name, *args
+    end
+
+    def events
+      @events ||= Events.new
+    end
+
     # Used to call a component.
     #
     # @example
@@ -52,8 +71,9 @@ module Wedge
       wedge_class = config.component_class[name]
       klass       = Class.new(wedge_class)
       # need to add the data to this anonymous class
-      klass.config.data = HashObject.new wedge_class.config.data.dup
-      klass.config.scope = scope
+      klass.wedge_on_count = wedge_class.wedge_on_count
+      klass.config.data    = HashObject.new wedge_class.config.data.dup
+      klass.config.scope   = scope
 
       if args.any?
         klass.new(*args)
@@ -109,11 +129,6 @@ module Wedge
             config.plugins.each do |path|
               js << Wedge.javascript(path)
             end
-          else
-            comp = Wedge.config.component_class[path_name.gsub(/\//, '__')]
-            compiled_data = Base64.encode64 comp.config.client_data.to_json
-            comp_name = comp.config.name
-            js << Opal.compile("Wedge.config.component_class[:#{comp_name}].config.data = HashObject.new(JSON.parse(Base64.decode64('#{compiled_data}')).merge Wedge.config.data.to_h)")
           end
 
           js
@@ -130,6 +145,9 @@ module Wedge
           else
             comp.send(options[:method_called])
           end
+
+          Wedge.trigger_browser_events
+
          `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); })`
       end
     end
@@ -139,7 +157,7 @@ module Wedge
         args = {
           klass: self,
           component_class: IndifferentHash.new,
-          requires: IndifferentHash.new,
+          requires: IndifferentHash.new
         }
 
         unless RUBY_ENGINE == 'opal'

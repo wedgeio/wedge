@@ -1,18 +1,33 @@
 module Wedge
   class Events
-    attr_accessor :scope, :browser_events, :object_events
+    attr_accessor :scope, :events
 
     VIP_ORDER_LIST = %w(history_change)
 
     def initialize
-      @browser_events = []
-      @object_events  = {}
+      @events = IndifferentHash.new
     end
 
-    def add(*args, &block)
+    def add(wedge_name, *args, &block)
+      event_name = args.shift
+
+      events = @events[wedge_name] ||= IndifferentHash.new({
+        browser_events: [],
+        object_events: IndifferentHash.new,
+        on_count: 0
+      })
+
+      # fix: there is a bug in opal where even though it's only including a
+      # module once it is loading the class twice. So this stops on events being
+      # double added
+      return if events[:on_count] >= Wedge[wedge_name].class.wedge_on_count
+
+      events[:on_count] += 1
+
       event = {
-        name: args.shift,
+        name: event_name,
         block: block,
+        wedge_name: wedge_name,
         options: {}
       }
 
@@ -27,46 +42,43 @@ module Wedge
       end
 
       if %w(ready history_change).include?(event[:name].to_s) || event[:name] =~ /[:\s]/ || event[:selector]
-        browser_events << event
+        events[:browser_events] << event
       else
-        event[:component] = scope.wedge_opts.name
-
         if for_component = event[:options].delete(:for)
-          wedge_opts = Wedge.components[for_component].klass.wedge_opts
-          events = wedge_opts.object_events[event.delete(:name)] ||= []
-          events << event
-        else
-          events = object_events[event.delete(:name)] ||= []
-          events << event
+          events = @events[for_component] ||= IndifferentHash.new({
+            browser_events: [],
+            object_events: IndifferentHash.new
+          })
         end
+
+        (events[:object_events][event_name] ||= []) << event
       end
     end
 
-    def trigger(name, options = {})
-      name    = name.to_s
-      options = options.indifferent
+    def trigger(wedge_name, event_name, *args)
+      event_name = event_name.to_s
 
-      case name
+      return unless events = @events[wedge_name]
+
+      case event_name
       when 'browser_events'
+        browser_events = events[:browser_events]
+
         # We make sure anything in the VIP_ORDER_LIST goes first
         (browser_events.sort_by do |x|
           [VIP_ORDER_LIST.index(x[:name]) || VIP_ORDER_LIST.length, browser_events.index(x)]
         end).each do |event|
-          trigger_browser_event event
+          trigger_browser_event wedge_name, event
         end
       else
-        # fix: we need to change the way events are stored
-        wedge_events = (Wedge.components[scope.wedge_opts.name].klass.wedge_opts.object_events[name] || [])
-        events = wedge_events.concat(object_events[name] || [])
-        ##################################################
-        events.each do |event|
-          Wedge[event[:component]].instance_exec options, &event[:block]
+        (events[:object_events][event_name] || []).each do |event|
+          Wedge[event[:wedge_name]].instance_exec(*args, &event[:block])
         end
       end
     end
 
-    def trigger_browser_event event
-      comp = Wedge[scope.wedge_opts.name]
+    def trigger_browser_event wedge_name, event
+      comp = Wedge[wedge_name]
 
       case
       when event[:name].to_s == 'ready'

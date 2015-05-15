@@ -8,6 +8,10 @@ class DummyApp
       'cow'
     end
 
+    on :ready do
+      puts 'bar ready'
+    end
+
     on :clicked_foo, for: :root do
       dom.find('body').append moo
     end

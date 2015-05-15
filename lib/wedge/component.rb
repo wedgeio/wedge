@@ -5,6 +5,8 @@ module Wedge
     include Methods
 
     class << self
+      attr_accessor :wedge_on_count
+
       alias_method :original_name, :name
       def wedge_name(*args)
         if args.any?
@@ -14,6 +16,8 @@ module Wedge
                 .gsub(%r{(#{Dir.pwd}/|.*(?=wedge))}, '')
                 .gsub(/\.rb$/, '')
           end
+
+          @wedge_on_count = 0
 
           args.each do |name|
             # set the name
@@ -89,7 +93,8 @@ module Wedge
 
       def wedge_on(*args, &block)
         if args.first.to_s != 'server'
-          config.on_block << [args, block]
+          @wedge_on_count += 1
+          Wedge.events.add config.name, *args, &block
         else
           wedge_on_server(&block)
         end
@@ -267,8 +272,8 @@ module Wedge
     end
     alias_method :javscript, :wedge_javascript
 
-    def wedge_trigger(*args)
-      config.events.trigger(*args)
+    def wedge_trigger(event_name, *args)
+      Wedge.events.trigger config.name, event_name, *args
     end
     alias_method :trigger, :wedge_trigger
 
