@@ -31,7 +31,7 @@ class Roda
 
       module InstanceMethods
         def wedge(name, *args, &block)
-          ::Wedge[name, self, *args, &block]
+          ::Wedge.scope!(self)[name, *args, &block]
         end
       end
 

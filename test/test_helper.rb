@@ -19,7 +19,7 @@ module Minitest
     end
 
     def wedge(name, *args, &block)
-      Wedge[name, nil, *args, &block]
+      Wedge[name, *args, &block]
     end
 
     # def app(*args)

@@ -22,6 +22,8 @@ module Wedge
   include Methods
 
   class << self
+    attr_accessor :scope, :store
+
     def assets_url
       url = config.assets_url.gsub(%r{^(http(|s)://[^\/]*\/|\/)}, '/')
       "#{url}#{config.cache_assets ? "/#{config.assets_key}" : ''}"
@@ -67,8 +69,20 @@ module Wedge
     #
     # @param name [String, Symbol, #to_s] The unique name given to a component.
     # @return [Wedge::Component#method] Last line of the method called.
-    def [](name, scope = nil, *args, &block)
-      config.component_class[name].wedge_new scope, *args, &block
+    def [](name, *args, &block)
+      config.component_class[name].wedge_new self, *args, &block
+    end
+
+    def scope! scope
+      klass = Class.new(self)
+      klass.instance_variable_set(:@scope, scope)
+      klass
+    end
+
+    def store! store
+      klass = Class.new(self)
+      klass.instance_variable_set(:@store, store)
+      klass
     end
 
     unless RUBY_ENGINE == 'opal'
@@ -127,7 +141,7 @@ module Wedge
         cache = options[:cache_assets]
 
         `jQuery.ajax({ url: url, dataType: "script", cache: cache }).done(function() {`
-          comp = Wedge[options[:name], options[:store].indifferent]
+          comp = Wedge.store!(options[:store].indifferent)[options[:name]]
 
           if options[:method_args].any?
             comp.send(options[:method_called], options[:method_args])

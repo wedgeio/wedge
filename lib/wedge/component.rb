@@ -5,14 +5,11 @@ module Wedge
     class << self
       attr_accessor :wedge_on_count
 
-      def wedge_new(scope, *args, &block)
+      def wedge_new(wedge, *args, &block)
         obj = allocate
 
-        if scope.is_a? Hash
-          obj.config.store = scope
-        else
-          obj.config.scope = scope
-        end
+        obj.config.store = wedge.store if wedge.store
+        obj.config.scope = wedge.scope if wedge.scope
 
         if args.any?
           obj.send :initialize, *args, &block
