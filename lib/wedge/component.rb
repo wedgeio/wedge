@@ -1,15 +1,17 @@
-module Wedge
+class Wedge
   class Component
     include Methods
 
     class << self
       attr_accessor :wedge_on_count
 
-      def wedge_new(wedge, *args, &block)
+      def wedge_new(klass, *args, &block)
         obj = allocate
 
         %w(store scope).each do |meth|
-          obj.config.send meth, wedge.send(value) if value = wedge.send(meth)
+          if value = klass.send(meth)
+            obj.config.send "#{meth}=", value
+          end
         end
 
         if args.any?
@@ -27,8 +29,8 @@ module Wedge
           unless RUBY_ENGINE == 'opal'
             # set the file path
             path = "#{caller[0]}".gsub(/(?<=\.rb):.*/, '')
-                .gsub(%r{(#{Dir.pwd}/|.*(?=wedge))}, '')
-                .gsub(/\.rb$/, '')
+              .gsub(%r{(#{Dir.pwd}/|.*(?=wedge))}, '')
+              .gsub(/\.rb$/, '')
           end
 
           @wedge_on_count = 0

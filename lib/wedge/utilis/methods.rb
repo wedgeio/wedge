@@ -1,4 +1,4 @@
-module Wedge
+class Wedge
   module Methods
     def self.included(base)
       base.extend(ClassMethods)

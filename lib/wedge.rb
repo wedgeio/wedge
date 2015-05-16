@@ -18,7 +18,7 @@ require 'wedge/events'
 require 'wedge/config'
 require 'wedge/component'
 
-module Wedge
+class Wedge
   include Methods
 
   class << self
@@ -76,6 +76,8 @@ module Wedge
     %w(store scope).each do |meth|
       define_method "#{meth}!" do |value|
         klass = Class.new(self)
+        klass.instance_variable_set(:"@config", Wedge.instance_variable_get(:@config))
+        klass.instance_variable_set(:"@events", Wedge.instance_variable_get(:@events))
         klass.instance_variable_set(:"@#{meth}", value)
         klass
       end

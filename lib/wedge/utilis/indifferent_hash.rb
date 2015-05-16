@@ -1,4 +1,4 @@
-module Wedge
+class Wedge
   class IndifferentHash < Hash
 
     def initialize(constructor = {}, &block)

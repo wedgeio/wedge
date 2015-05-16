@@ -1,4 +1,4 @@
-module Wedge
+class Wedge
   module Plugins
     class History < Component
       name :history_plugin

@@ -12,7 +12,7 @@ unless RUBY_ENGINE == 'opal'
   end
 end
 
-module Wedge
+class Wedge
   # Create our own opal instance.
   Opal = ::Opal.dup
 end

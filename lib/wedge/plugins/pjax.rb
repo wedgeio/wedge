@@ -13,7 +13,7 @@ end
 
 require 'wedge/plugins/history'
 
-module Wedge
+class Wedge
   module Plugins
     class Pjax < Component
       name :pjax, :pjax_plugin

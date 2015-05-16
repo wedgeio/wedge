@@ -1,4 +1,4 @@
-module Wedge
+class Wedge
   class DOM
     include Methods
 

@@ -1,6 +1,6 @@
 class Roda
   module RodaPlugins
-    module Wedge
+    class Wedge
       def self.configure(app, opts = {})
         if app.opts[:wedge]
           app.opts[:wedge].merge!(opts)

@@ -1,7 +1,7 @@
 require 'wedge/plugins/validations'
 require 'forwardable'
 
-module Wedge
+class Wedge
   module Plugins
     class Form < Component
       name :form_plugin
