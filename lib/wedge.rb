@@ -22,7 +22,9 @@ class Wedge
   include Methods
 
   class << self
-    attr_accessor :scope, :store
+    ATTR_ACCESSORS = %i{scope store config events}
+
+    attr_accessor(*ATTR_ACCESSORS)
 
     def assets_url
       url = config.assets_url.gsub(%r{^(http(|s)://[^\/]*\/|\/)}, '/')
@@ -76,8 +78,9 @@ class Wedge
     %w(store scope).each do |meth|
       define_method "#{meth}!" do |value|
         klass = Class.new(self)
-        klass.instance_variable_set(:"@config", Wedge.instance_variable_get(:@config))
-        klass.instance_variable_set(:"@events", Wedge.instance_variable_get(:@events))
+        ATTR_ACCESSORS.each do |name|
+          klass.instance_variable_set(:"@#{name}", Wedge.instance_variable_get(:"@#{name}"))
+        end
         klass.instance_variable_set(:"@#{meth}", value)
         klass
       end
@@ -109,8 +112,6 @@ class Wedge
           Dir["#{gems_dir}/**/"].sort.each do |folder|
             Wedge::Opal.append_path "#{folder}/lib"
           end
-
-          true
         end
       end
     end
@@ -155,11 +156,7 @@ class Wedge
 
     def config
       @config ||= begin
-        args = {
-          klass: self,
-          component_class: IndifferentHash.new,
-          requires: IndifferentHash.new
-        }
+        args = { klass: self, component_class: IndifferentHash.new }
 
         unless RUBY_ENGINE == 'opal'
           args[:path]       = caller.first.gsub(/(?<=\.rb):.*/, '')
