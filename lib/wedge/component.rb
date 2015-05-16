@@ -8,8 +8,9 @@ module Wedge
       def wedge_new(wedge, *args, &block)
         obj = allocate
 
-        obj.config.store = wedge.store if wedge.store
-        obj.config.scope = wedge.scope if wedge.scope
+        %w(store scope).each do |meth|
+          obj.config.send meth, wedge.send(value) if value = wedge.send(meth)
+        end
 
         if args.any?
           obj.send :initialize, *args, &block

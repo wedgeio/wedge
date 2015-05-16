@@ -73,16 +73,12 @@ module Wedge
       config.component_class[name].wedge_new self, *args, &block
     end
 
-    def scope! scope
-      klass = Class.new(self)
-      klass.instance_variable_set(:@scope, scope)
-      klass
-    end
-
-    def store! store
-      klass = Class.new(self)
-      klass.instance_variable_set(:@store, store)
-      klass
+    %w(store scope).each do |meth|
+      define_method "#{meth}!" do |value|
+        klass = Class.new(self)
+        klass.instance_variable_set(:"@#{meth}", value)
+        klass
+      end
     end
 
     unless RUBY_ENGINE == 'opal'
