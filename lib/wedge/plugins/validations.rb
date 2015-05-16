@@ -134,7 +134,7 @@ module Wedge
               options = {}
               options[:key] = _options[:key] if _options.key? :key
 
-              f = wedge(form_name, init: [_attributes.send(att).attributes, options])
+              f = wedge(form_name, _attributes.send(att).attributes, options)
               assert(f.valid?, [att, f.errors])
             else
               assert(!_attributes.send(att).to_s.empty?, error)

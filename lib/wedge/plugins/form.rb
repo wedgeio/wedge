@@ -105,7 +105,7 @@ module Wedge
         _form.each do |key, form_name|
           opts = {}
           if _data.respond_to?(key)
-            opts[key] = wedge(form_name, init: _data.send(key))
+            opts[key] = wedge(form_name, _data.send(key))
           end
           @_attributes.set_values opts
 
@@ -155,7 +155,7 @@ module Wedge
             atts[att] = _attributes.send(att)
 
             if form_name = _form[att.to_s.to_sym]
-              atts[att] = wedge(form_name, init: atts[att]).attributes
+              atts[att] = wedge(form_name, atts[att]).attributes
             end
           end
         end
@@ -169,7 +169,7 @@ module Wedge
             d = data[k]
             d = d.attributes if d.is_a?(Form)
 
-            f  = wedge(form_name, init: d)
+            f  = wedge(form_name, d)
             k  = "#{k}_attributes"
             dt = f.model_attributes
 

@@ -124,9 +124,9 @@ module Wedge
           opts[:dom] = el
 
           if opts && key = opts[:key]
-            form = Wedge[event[:options][:form], init: [params_obj[key], opts]]
+            form = Wedge[event[:options][:form], nil, params_obj[key], opts]
           else
-            form = Wedge[event[:options][:form], init: [params_obj, opts]]
+            form = Wedge[event[:options][:form], nil, params_obj, opts]
           end
 
           el.find(opts[:error_selector] || '.field-error').remove
