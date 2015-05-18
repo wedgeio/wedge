@@ -145,11 +145,12 @@ class Wedge
             config.plugins.each do |path|
               js << Wedge.javascript(path)
             end
-          elsif comp_class = Wedge.config.component_class[path_name]
+          elsif comp_class = Wedge.config.component_class[path_name.gsub(/\//, '__')]
             comp_name     = comp_class.config.name
             compiled_data = Base64.encode64 comp_class.config.client_data.to_json
 
             js << Opal.compile("Wedge.config.component_class[:#{comp_name}].config.data = HashObject.new(Wedge.config.component_class[:#{comp_name}].config.data.to_h.merge JSON.parse(Base64.decode64('#{compiled_data}')))")
+
             if requires = config.requires[path_name.gsub(/\//, '__')]
 
               requires.each do |path|
