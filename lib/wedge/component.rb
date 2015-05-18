@@ -94,8 +94,10 @@ class Wedge
       def wedge_dom &block
         @wedge_dom ||= DOM.new wedge_config.html
 
-        if block_given?
-          yield
+        unless RUBY_ENGINE == 'opal'
+          if block_given?
+            yield
+          end
         end
 
         @wedge_dom
