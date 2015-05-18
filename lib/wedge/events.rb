@@ -46,7 +46,8 @@ class Wedge
         if for_component = event[:options].delete(:for)
           events = @events[for_component] ||= IndifferentHash.new({
             browser_events: [],
-            object_events: IndifferentHash.new
+            object_events: IndifferentHash.new,
+            on_count: 0
           })
         end
 
