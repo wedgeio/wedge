@@ -13,7 +13,9 @@ unless RUBY_ENGINE == 'opal'
         name       = name.sub("#{Dir.pwd}/", '').gsub(/\.rb$/, '').gsub(/\//, '__')
         caller_str = "#{caller[0]}".gsub(/(#{Dir.pwd}\/|.*(?=wedge))/, '').gsub(/:.+$/, '').gsub(/\.rb$/, '').gsub(/\//, '__')
 
-        Wedge.config.requires[caller_str] << name unless (Wedge.config.requires[caller_str] ||= []).include? name
+        if !caller_str['.'] && !(Wedge.config.requires[caller_str] ||= []).include?(name)
+          Wedge.config.requires[caller_str] << name
+        end
       end
 
       result
@@ -35,7 +37,7 @@ unless RUBY_ENGINE == 'opal'
       file      = caller_str.gsub(/(?<=\/)([^\/]*)$/, "#{name}")
       caller_path_name = caller_path_name.gsub(/\//, '__')
 
-      unless caller_path_name['.'] || (Wedge.config.requires[caller_path_name] ||= []).include?(path_name)
+      if !caller_path_name['.'] && !(Wedge.config.requires[caller_path_name] ||= []).include?(path_name)
         Wedge.config.requires[caller_path_name] << path_name
       end
 
