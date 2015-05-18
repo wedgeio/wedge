@@ -16,7 +16,8 @@ class Wedge
           end
         end
 
-        if args.any?
+        if args.length > 0
+          obj.config.initialize_args = args
           obj.send :initialize, *args, &block
         else
           obj.send :initialize, &block
@@ -282,7 +283,7 @@ class Wedge
       return unless server?
 
       client_data = config.client_data.dup
-      client_data.merge! method_called: method, method_args: args
+      client_data.merge! method_called: method, method_args: args, initialize_args: config.initialize_args
 
       compiled_opts = Base64.encode64 client_data.to_json
       javascript = <<-JS

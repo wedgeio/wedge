@@ -32,10 +32,6 @@ class Wedge
       "#{url}#{config.cache_assets ? "/#{config.assets_key}" : ''}"
     end
 
-    def requires
-      @requires ||= IndifferentHash.new
-    end
-
     def assets_url_regex
       @assets_url_regex ||= begin
         assets_url = ::Wedge.assets_url.gsub(%r{^\/}, '')
@@ -123,15 +119,20 @@ class Wedge
           gems_dir = ::Opal.gem_dir.gsub(/(?<=gems)\/opal-.*/, '')
           Wedge::Opal.append_path file
           Wedge::Opal.append_path Dir.pwd
-          Dir["#{gems_dir}/**/"].sort.each do |folder|
-            Wedge::Opal.append_path "#{folder}/lib"
-          end
+          # fix: make this a config option i.e.
+          # gems: [:ability_list]
+          # then grab that path and add it to the opal path list
+          # Dir["#{gems_dir}/**/"].sort.each do |folder|
+          #   Wedge::Opal.append_path "#{folder}/lib"
+          # end
         end
       end
     end
 
     # Return the opal javascript.
     def javascript(path_name = 'wedge', options = {})
+      path_name = path_name.to_s
+
       if server?
         javascript_cache[path_name] ||= begin
           js = build(path_name, options).javascript
@@ -171,7 +172,11 @@ class Wedge
         cache = options[:cache_assets]
 
         `jQuery.ajax({ url: url, dataType: "script", cache: cache }).done(function() {`
-          comp = Wedge.store!(options[:store].indifferent)[options[:name]]
+          if initialize_args = options.delete(:initialize_args)
+            comp = Wedge.store!(options[:store].indifferent)[options[:name], *initialize_args]
+          else
+            comp = Wedge.store!(options[:store].indifferent)[options[:name]]
+          end
 
           if options[:method_args].any?
             comp.send(options[:method_called], options[:method_args])
@@ -187,10 +192,9 @@ class Wedge
 
     def config
       @config ||= begin
-        args = { klass: self, component_class: IndifferentHash.new }
+        args = { component_class: IndifferentHash.new }
 
         unless RUBY_ENGINE == 'opal'
-          # args[:path]       = caller.first.gsub(/(?<=\.rb):.*/, '')
           args[:assets_key] = begin
             if defined?(PlatformAPI) && ENV['HEROKU_TOKEN'] && ENV['HEROKU_APP']
               heroku = PlatformAPI.connect_oauth(ENV['HEROKU_TOKEN'], default_headers: {'Range' => 'version ..; order=desc'})

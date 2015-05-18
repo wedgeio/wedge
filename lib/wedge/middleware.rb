@@ -28,20 +28,20 @@ class Wedge
 
           case extension
           when 'map'
-            ::Wedge.source_map wedge_path
+            body << ::Wedge.source_map(wedge_path)
           when 'rb'
             if wedge_path =~ /^wedge/
               path = ::Wedge.config.path.gsub(/\/wedge.rb$/, '')
-              File.read("#{path}/#{wedge_path}.rb")
+              body << File.read("#{path}/#{wedge_path}.rb")
             else
-              File.read("#{ROOT_PATH}/#{wedge_path}.rb")
+              body << File.read("#{ROOT_PATH}/#{wedge_path}.rb")
             end if Wedge.config.debug
           when 'call'
-            body = scope.request.body.read
-            data = scope.request.params
+            body_data = scope.request.body.read
+            data      = scope.request.params
 
             begin
-              data.merge!(body ? JSON.parse(body) : {})
+              data.merge!(body_data ? JSON.parse(body_data) : {})
             rescue
               # can't be parsed by json
             end
@@ -53,18 +53,21 @@ class Wedge
 
             if method_args == 'wedge_data' && data
               method_args   = [data]
-              res = Wedge.scope!(app)[name].send(method_called, *method_args) || ''
+              body << Wedge.scope!(app)[name].send(method_called, *method_args) || ''
             else
-              res = Wedge.scope!(app)[name, data].send(method_called, *method_args) || ''
+              # This used to send things like init, we need a better way to
+              # send client config data to the server
+              # res = scope.wedge(name, data).send(method_called, *method_args) || ''
+              body << Wedge.scope!(app)[name].send(method_called, *method_args) || ''
             end
 
-            headers["WEDGE-CSRF-TOKEN"] = scope.csrf_token if scope.methods.include? :csrf_token
+            # headers["WEDGE-CSRF-TOKEN"] = scope.csrf_token if scope.methods.include? :csrf_token
 
             if res.is_a? Hash
               headers["Content-Type"] = 'application/json; charset=UTF-8'
-              body = res.to_json
+              body << res.to_json
             else
-              body = res.to_s
+              body << res.to_s
             end
           else
             headers['Content-Type'] = 'application/javascript; charset=UTF-8'
@@ -72,7 +75,6 @@ class Wedge
             if Wedge.config.debug
               body << "#{Wedge.javascript(wedge_path)}\n//# sourceMappingURL=#{Wedge.assets_url}/#{wedge_path}.map"
             else
-              binding.pry
               body << Wedge.javascript(wedge_path)
             end
           end
