@@ -57,12 +57,12 @@ class Wedge
       end
       alias_method :name, :wedge_name
 
-      def wedge_html(html, &block)
+      def wedge_html(html = '', &block)
         unless RUBY_ENGINE == 'opal'
           wedge_config.html = begin
             File.read html
           rescue
-            html
+            (html.is_a?(HTML::DSL) || html.is_a?(DOM)) ? html.to_html : html
           end.strip
 
           if block_given?
@@ -198,6 +198,16 @@ class Wedge
           include m
         end
       end
+
+      def set_dom dom
+        @wedge_dom = Wedge::DOM.new dom
+      end
+
+      def html!(&b)
+        unless RUBY_ENGINE == 'opal'
+          DOM.new HTML::DSL.html(&b).to_html
+        end
+      end
     end
 
     if RUBY_ENGINE == 'opal'
@@ -304,6 +314,11 @@ class Wedge
       response << wedge_javascript(method, *args) if response.is_a? String
       response
     end
+
+    def wedge_html(&b)
+      DOM.new HTML::DSL.html(&b).to_html
+    end
+    alias_method :html!, :wedge_html
 
     def method_missing(method, *args, &block)
       if config.scope.respond_to?(method, true)

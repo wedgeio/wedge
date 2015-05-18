@@ -15,6 +15,7 @@ class Wedge
 
     def initialize html
       html = '' if html.nil?
+      html = html.to_html if html.is_a? HTML::DSL
 
       @raw_html = html
 

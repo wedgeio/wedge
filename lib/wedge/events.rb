@@ -20,7 +20,7 @@ class Wedge
       # fix: there is a bug in opal where even though it's only including a
       # module once it is loading the class twice. So this stops on events being
       # double added
-      return if events[:on_count] >= Wedge[wedge_name].class.wedge_on_count
+      return if events[:on_count] >= Wedge.config.component_class[wedge_name].wedge_on_count
       events[:on_count] += 1
 
       event = {

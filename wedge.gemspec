@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency "opal"
   spec.add_runtime_dependency "opal-jquery"
-  spec.add_runtime_dependency "nokogiri", '~> 1.6.6.2'
+  spec.add_runtime_dependency "nokogiri"
 
   spec.add_development_dependency "pry"
   spec.add_development_dependency "awesome_print"

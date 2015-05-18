@@ -6,7 +6,9 @@ require_relative '../forms/foo'
 class DummyApp
   class RootComponent < BaseComponent
     name :root
-    html "<div id='foo'>bar</div>"
+    html html! {
+      div 'bar', id: 'foo'
+    }
 
     def display
       if server?
@@ -14,9 +16,15 @@ class DummyApp
           dom.to_html
         end
       else
-        el = Element['<div>']
-        el.html 'foo'
-        dom.find('#foo').before el
+        html! do
+          div class: 'control-group fake optional' do
+            label 'Profile Picture', class: 'fake optional control-label'
+            div id: 'profile_picture'
+          end
+        end
+        dom.find('#foo').before html! {
+          div 'foo'
+        }
       end
     end
 

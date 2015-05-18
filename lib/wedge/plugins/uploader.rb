@@ -24,9 +24,9 @@ class Wedge
 
       def initialize
         if server?
-          @settings = opts[:settings][:uploader].indifferent
-          # This is used client side so we don't want to include the aws secret
-          cache.settings = settings.select { |k, v| %w(aws_access_key_id bucket).include? k }
+          # @settings = Wedge.config[:settings][:uploader].indifferent
+          # # This is used client side so we don't want to include the aws secret
+          # store[:settings] = settings.select { |k, v| %w(aws_access_key_id bucket).include? k }
         end
       end
 
@@ -211,16 +211,6 @@ class Wedge
         fine_uploader.on('complete') do |event, _, name, response|
           return unless response
 
-          # html = `response.html`
-          # # grab and eval the scripts
-          # matches = html.match(/<script>((.|[\n\r])*)<\/script>/im)
-          # # `eval(#{matches[0]})`
-          # (matches[1] || '').split('</script>').each do |script|
-          #   # script = script.sub('<script>', '')
-          #   script = script.strip.sub('</html>', '').sub('<script>', '')
-          #   `jQuery.globalEval(script);`
-          # end
-
           name          = `response.wedge_name`
           dom_file_id   = `response.dom_file_id`
           method_called = `response.wedge_method_called`
@@ -272,7 +262,7 @@ class Wedge
       end
 
       def settings
-        server?? @settings : (@settings ||= cache[:settings].dup)
+        server?? @settings : (@settings ||= store[:settings].dup)
       end
     end
   end
