@@ -21,6 +21,7 @@ class Wedge
         assets_key: false,
         cache_assets: false,
         is_plugin: false,
+        requires: IndifferentHash.new,
         triggered_browser_events: false,
         store: IndifferentHash.new,
         settings: IndifferentHash.new,
@@ -29,7 +30,7 @@ class Wedge
         on_block_count: 0,
         server_methods: [],
         plugins: [],
-        allowed_client_data: %w(name path method_args method_called store tmpl key cache_assets assets_key assets_url assets_url_with_host)
+        allowed_client_data: %w(name path method_args method_called store tmpl key cache_assets assets_key assets_url assets_url_with_host requires)
       }.merge(opts))
     end
 

@@ -1,3 +1,4 @@
+require_relative 'layout'
 require_relative 'base'
 require_relative 'bar'
 require_relative '../forms/foo'

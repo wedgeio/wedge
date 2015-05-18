@@ -11,6 +11,7 @@ require 'base64'
 unless RUBY_ENGINE == 'opal'
   require 'nokogiri'
   require 'wedge/utilis/nokogiri'
+  require 'wedge/middleware'
 end
 require 'wedge/html'
 require 'wedge/dom'
@@ -29,6 +30,19 @@ class Wedge
     def assets_url
       url = config.assets_url.gsub(%r{^(http(|s)://[^\/]*\/|\/)}, '/')
       "#{url}#{config.cache_assets ? "/#{config.assets_key}" : ''}"
+    end
+
+    def requires
+      @requires ||= IndifferentHash.new
+    end
+
+    def assets_url_regex
+      @assets_url_regex ||= begin
+        assets_url = ::Wedge.assets_url.gsub(%r{^\/}, '')
+        # # We also allow for no assets key so when we post server methods there
+        # # isn't an error if the key has been changed since a browser refresh.
+        %r{(?:#{assets_url}|#{assets_url.sub("#{::Wedge.config.assets_key}/", '')})/(.*)\.(.*)$}
+      end
     end
 
     def assets_url_with_host
@@ -126,10 +140,19 @@ class Wedge
             compiled_data = Base64.encode64 config.client_data.to_json
             # We need to merge in some data that is only set on the server.
             # i.e. path, assets_key etc....
-            js << Opal.compile("Wedge.config.data = HashObject.new(JSON.parse(Base64.decode64('#{compiled_data}')).merge Wedge.config.data.to_h)")
+            js << Opal.compile("Wedge.config.data = HashObject.new(Wedge.config.data.to_h.merge JSON.parse(Base64.decode64('#{compiled_data}')))")
             # load all global plugins into wedge
             config.plugins.each do |path|
               js << Wedge.javascript(path)
+            end
+          elsif requires = config.requires[path_name.gsub(/\//, '__')]
+            requires.each do |path|
+              next unless comp_class = Wedge.config.component_class[path]
+
+              comp_name     = comp_class.config.name
+              compiled_data = Base64.encode64 comp_class.config.client_data.to_json
+
+              js << Opal.compile("Wedge.config.component_class[:#{comp_name}].config.data = HashObject.new(Wedge.config.component_class[:#{comp_name}].config.data.to_h.merge JSON.parse(Base64.decode64('#{compiled_data}')))")
             end
           end
 
@@ -159,7 +182,7 @@ class Wedge
         args = { klass: self, component_class: IndifferentHash.new }
 
         unless RUBY_ENGINE == 'opal'
-          args[:path]       = caller.first.gsub(/(?<=\.rb):.*/, '')
+          # args[:path]       = caller.first.gsub(/(?<=\.rb):.*/, '')
           args[:assets_key] = begin
             if defined?(PlatformAPI) && ENV['HEROKU_TOKEN'] && ENV['HEROKU_APP']
               heroku = PlatformAPI.connect_oauth(ENV['HEROKU_TOKEN'], default_headers: {'Range' => 'version ..; order=desc'})

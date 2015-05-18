@@ -9,10 +9,12 @@ class DummyApp
           #{Wedge.script_tag}
         </head>
         <body>
+          <div id='template'>Template</div>
         </body>
       </html>
     HTML
     dom do
+      tmpl :template, dom.find('#template')
       dom.find('body') << assets(:js)
     end
 
