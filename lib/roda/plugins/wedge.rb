@@ -76,7 +76,10 @@ class Roda
                 method_args   = [data]
                 res = scope.wedge(name).send(method_called, *method_args) || ''
               else
-                res = scope.wedge(name, data).send(method_called, *method_args) || ''
+                # This used to send things like init, we need a better way to
+                # send client config data to the server
+                # res = scope.wedge(name, data).send(method_called, *method_args) || ''
+                res = scope.wedge(name).send(method_called, *method_args) || ''
               end
 
               scope.response.headers["WEDGE-CSRF-TOKEN"] = scope.csrf_token if scope.methods.include? :csrf_token
