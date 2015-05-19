@@ -157,6 +157,8 @@ class Wedge
               requires.each do |path|
                 next unless comp_class = Wedge.config.component_class[path]
 
+                comp_class.config.before_compile.each { |blk| comp_class.instance_eval(&blk) }
+
                 comp_name     = comp_class.config.name
                 compiled_data = Base64.encode64 comp_class.config.client_data.to_json
 

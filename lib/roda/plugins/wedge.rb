@@ -33,6 +33,10 @@ class Roda
         def wedge(name, *args, &block)
           ::Wedge.scope!(self)[name, *args, &block]
         end
+
+        def wedge_plugin(name, *args, &block)
+          ::Wedge.scope!(self)["#{name}_plugin", *args, &block]
+        end
       end
 
       module RequestClassMethods

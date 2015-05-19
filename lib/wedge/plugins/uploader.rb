@@ -2,6 +2,12 @@ class Wedge
   module Plugins
     class Uploader < Component
       name :uploader, :uploader_plugin
+      before_compile do
+        settings = Wedge.config.settings[:uploader]
+        store[:settings] = settings.select do |k, v|
+          %w(aws_access_key_id bucket).include? k
+        end if settings
+      end
 
       class S3Signature < Struct.new(:policy_data, :settings)
         def policy
@@ -24,9 +30,9 @@ class Wedge
 
       def initialize
         if server?
-          # @settings = Wedge.config[:settings][:uploader].indifferent
-          # # This is used client side so we don't want to include the aws secret
-          # store[:settings] = settings.select { |k, v| %w(aws_access_key_id bucket).include? k }
+          @settings = Wedge.config[:settings][:uploader].indifferent
+          # This is used client side so we don't want to include the aws secret
+          store[:settings] = settings.select { |k, v| %w(aws_access_key_id bucket).include? k }
         end
       end
 

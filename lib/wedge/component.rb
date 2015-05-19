@@ -96,14 +96,6 @@ class Wedge
 
       def wedge_dom &block
         @wedge_dom ||= DOM.new wedge_config.html
-
-        unless RUBY_ENGINE == 'opal'
-          if block_given?
-            yield
-          end
-        end
-
-        @wedge_dom
       end
       alias_method :dom, :wedge_dom
 
@@ -200,7 +192,7 @@ class Wedge
       end
 
       def set_dom dom
-        @wedge_dom = Wedge::DOM.new dom
+        @wedge_dom = dom.is_a?(Wedge::DOM) ? dom : Wedge::DOM.new(dom)
       end
 
       def html!(&b)
@@ -208,11 +200,23 @@ class Wedge
           DOM.new HTML::DSL.html(&b).to_html
         end
       end
+
+      def store
+        wedge_config.store
+      end
+
+      def before_compile &block
+        wedge_config.before_compile << block unless RUBY_ENGINE == 'opal'
+      end
     end
 
     if RUBY_ENGINE == 'opal'
       def wedge(*args)
         Wedge[*args]
+      end
+
+      def wedge_plugin(name, *args, &block)
+        wedge("#{name}_plugin", *args, &block)
       end
     end
 
