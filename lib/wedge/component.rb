@@ -95,6 +95,13 @@ class Wedge
       alias_method :tmpl, :wedge_tmpl
 
       def wedge_dom &block
+
+        unless RUBY_ENGINE == 'opal'
+          if block_given?
+            yield
+          end
+        end
+
         @wedge_dom ||= DOM.new wedge_config.html
       end
       alias_method :dom, :wedge_dom
