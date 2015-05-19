@@ -1,12 +1,12 @@
-#{$all-buttons} {
+#{$all-buttons}, .qq-upload-button {
   background-color: #477DCA;
 }
 
 #{$all-buttons-focus},
-#{$all-buttons-hover} {
+#{$all-buttons-hover}, .qq-upload-button:focus, .qq-upload-button:hover  {
   background-color: #1C4887;
 }
 
-#{$all-buttons-active} {
+#{$all-buttons-active}, .qq-upload-button:active {
   background-color: #153769;
 }

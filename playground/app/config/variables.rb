@@ -13,3 +13,4 @@ end if %w{development test}.include? RACK_ENV
 APP_SECRET            = ENV.fetch('APP_SECRET').freeze
 AWS_ACCESS_KEY_ID     = ENV.fetch('AWS_ACCESS_KEY_ID').freeze
 AWS_SECRET_ACCESS_KEY = ENV.fetch('AWS_SECRET_ACCESS_KEY').freeze
+AWS_BUCKET            = ENV.fetch('AWS_BUCKET').freeze

@@ -66,17 +66,23 @@ class Roda
               data = scope.request.params
 
               begin
+                # try json
                 data.merge!(body ? JSON.parse(body) : {})
               rescue
-                # can't be parsed by json
+                begin
+                  # try form data
+                  data.merge!(body ? Rack::Utils.parse_query(body) : {})
+                rescue
+                  # no data
+                end
               end
 
               data          = data.indifferent
-              name          = data.delete(:wedge_name)
-              method_called = data.delete(:wedge_method_called)
-              method_args   = data.delete(:wedge_method_args)
+              name          = data.delete(:__wedge_name__)
+              method_called = data.delete(:__wedge_method__)
+              method_args   = data.delete(:__wedge_args__)
 
-              if method_args == 'wedge_data' && data
+              if method_args == '__wedge_data__' && data
                 method_args   = [data]
                 res = scope.wedge(name).send(method_called, *method_args) || ''
               else

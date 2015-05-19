@@ -5,7 +5,7 @@ class Wedge
       before_compile do
         settings = Wedge.config.settings[:uploader]
         store[:settings] = settings.select do |k, v|
-          %w(aws_access_key_id bucket).include? k
+          client?? %w(aws_access_key_id bucket).include?(k) : true
         end if settings
       end
 
@@ -28,14 +28,6 @@ class Wedge
         end
       end
 
-      def initialize
-        if server?
-          @settings = Wedge.config[:settings][:uploader].indifferent
-          # This is used client side so we don't want to include the aws secret
-          store[:settings] = settings.select { |k, v| %w(aws_access_key_id bucket).include? k }
-        end
-      end
-
       def signature policy_data
         s3 = S3Signature.new policy_data, settings
 
@@ -46,17 +38,17 @@ class Wedge
       end
 
       def success options = {}
-        options     = options.indifferent
-        comp_name   = options.delete :comp_name
-        comp_method = options.delete :comp_method
+        options      = options.indifferent
+        wedge_name   = options.delete :wedge_name
+        wedge_method = options.delete :wedge_method
 
-        if comp_name
+        if wedge_name
           response.headers["Content-Type"] = 'application/json; charset=UTF-8'
           {
             success: true,
-            wedge_name: comp_name,
-            wedge_method_called: comp_method,
-            wedge_data: wedge(comp_name, :js).send(comp_method, options),
+            wedge_name: wedge_name,
+            wedge_method: wedge_method,
+            wedge_response: wedge(wedge_name).to_js(wedge_method, options),
             dom_file_id: options[:dom_file_id]
           }.to_json
         end
@@ -64,16 +56,16 @@ class Wedge
 
       def delete options = {}
         options     = options.indifferent
-        comp_name   = options.delete :comp_name
-        comp_method = options.delete :delete_method
+        wedge_name   = options.delete :wedge_name
+        wedge_method = options.delete :delete_method
 
-        if comp_name
+        if wedge_name
           response.headers["Content-Type"] = 'application/json; charset=UTF-8'
           {
             success: true,
-            wedge_name: comp_name,
-            wedge_method_called: comp_method,
-            wedge_data: wedge(comp_name, :js).send(comp_method, options)
+            wedge_name: wedge_name,
+            wedge_method: wedge_method,
+            wedge_response: wedge(wedge_name).to_js(wedge_method, options)
           }.to_json
         end
       end
@@ -87,7 +79,7 @@ class Wedge
         id            = el.attr 'id'
         container_id  = "#{id}-container"
         template_id   = "#{id}-tmpl"
-        key           = options.delete(:key) || '{uuid}-{name}'
+        key           = options.delete(:aws_name) || '{name}-{uuid}'
 
         # add s3 container
         el.after drag_n_drop_tmpl template_id
@@ -136,7 +128,7 @@ class Wedge
             # // REQUIRED: Path to our local server where requests
             # // can be signed.
             signature: {
-              endpoint: "#{Wedge.assets_url}/app/components/uploader.call?wedge_method_called=signature&wedge_method_args=wedge_data&wedge_name=uploader",
+              endpoint: "#{Wedge.assets_url}/wedge/plugins/uploader.call?__wedge_method__=signature&__wedge_args__=__wedge_data__&__wedge_name__=uploader_plugin",
               customHeaders: {'X-CSRF-Token' => Element.find('head > meta[name="_csrf"]').attr('content') }
             },
 
@@ -145,7 +137,7 @@ class Wedge
             # // Server-side, we can declare this upload a failure
             # // if something is wrong with the file.
             uploadSuccess: {
-              endpoint: "#{Wedge.assets_url}/app/components/uploader.call?wedge_method_called=success&wedge_method_args=wedge_data&wedge_name=uploader",
+              endpoint: "#{Wedge.assets_url}/wedge/plugins/uploader.call?__wedge_method__=success&__wedge_args__=__wedge_data__&__wedge_name__=uploader_plugin",
               customHeaders: {'X-CSRF-Token' => Element.find('head > meta[name="_csrf"]').attr('content') }
             },
 
@@ -188,7 +180,7 @@ class Wedge
           uploader_settings[:deleteFile] = {
             enabled: true,
             forceConfirm: true,
-            endpoint: "#{Wedge.assets_url}/app/components/uploader.call?wedge_method_called=delete&wedge_method_args=wedge_data&wedge_name=uploader&delete_id=",
+            endpoint: "#{Wedge.assets_url}/wedge/plugins/uploader.call?__wedge_method__=delete&__wedge_args__=__wedge_data__&__wedge_name__=uploader_plugin",
             params: options,
             customHeaders: {
               'X-CSRF-Token' => Element.find('head > meta[name="_csrf"]').attr('content'),
@@ -203,12 +195,12 @@ class Wedge
           }
         end
 
-        if options[:resume_method]
-          uploader_settings[:session] = {
-            endpoint: "#{Wedge.assets_url}/app/components/#{options[:comp_name]}.call?wedge_method_called=#{options[:resume_method]}&wedge_method_args=wedge_data&wedge_name=registration",
-            params: options
-          }
-        end
+        # if options[:resume_method]
+        #   uploader_settings[:session] = {
+        #     endpoint: "#{Wedge.assets_url}/app/components/#{options[:wedge_name]}.call?wedge_method=#{options[:resume_method]}&wedge_method_args=wedge_data&wedge_name=registration",
+        #     params: options
+        #   }
+        # end
         if !options[:multiple].nil?
           uploader_settings[:multiple] = options.delete(:multiple)
         end
@@ -219,9 +211,9 @@ class Wedge
 
           name          = `response.wedge_name`
           dom_file_id   = `response.dom_file_id`
-          method_called = `response.wedge_method_called`
+          method_called = `response.wedge_method`
           # fix: we should be able to get the object better than this
-          data          = JSON.parse(`JSON.stringify(response.wedge_data)`)
+          data          = JSON.parse(`JSON.stringify(response.wedge_response)`)
 
           wedge(name).send(method_called, data)
 
@@ -268,7 +260,7 @@ class Wedge
       end
 
       def settings
-        server?? @settings : (@settings ||= store[:settings].dup)
+        @settings ||= store[:settings].dup
       end
     end
   end

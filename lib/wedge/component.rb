@@ -16,6 +16,10 @@ class Wedge
           end
         end
 
+        obj.config.before_compile.each do |blk|
+          obj.instance_exec &blk
+        end
+
         if args.length > 0
           obj.config.initialize_args = args
           obj.send :initialize, *args, &block
@@ -163,9 +167,9 @@ class Wedge
               payload = config.client_data.reject do |k, _|
                 %w(html tmpl requires plugins object_events js_loaded).include? k
               end
-              payload[:wedge_name]          = payload[:name]
-              payload[:wedge_method_called] = meth
-              payload[:wedge_method_args]   = args
+              payload[:__wedge_name__]   = payload[:name]
+              payload[:__wedge_method__] = meth
+              payload[:__wedge_args__]   = args
 
               # we want to remove the assets key from the call so we don't get
               # an error if they assets_key has changed and the user hasn't

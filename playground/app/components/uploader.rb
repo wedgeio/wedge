@@ -12,11 +12,20 @@ class Playground
       wedge(:layout).display { dom }
     end
 
+    def add_file data = {}
+      if server?
+        puts 'uploaded to s3'
+      else
+        puts 'uploaded to s3'
+      end
+    end
+
     on :ready do
-      wedge_plugin(:uploader).button dom.find("button"), {
+      button = dom.find("button")
+      button.hide
+      wedge_plugin(:uploader).button button, {
         wedge_name: :uploader,
-        wedge_method: :add_file,
-        key: "playground/uploader/{uuid}.{ext}"
+        wedge_method: :add_file
       }
     end
   end
