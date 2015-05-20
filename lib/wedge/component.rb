@@ -126,8 +126,8 @@ class Wedge
       alias_method :on, :wedge_on
 
       def method_missing(method, *args, &block)
-        if config.scope.respond_to?(method, true)
-          config.scope.send method, *args, &block
+        if wedge_config.scope.respond_to?(method, true)
+          wedge_config.scope.send method, *args, &block
         else
           super
         end

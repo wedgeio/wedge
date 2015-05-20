@@ -22,11 +22,12 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "opal-jquery"
   spec.add_runtime_dependency "nokogiri"
 
+  spec.add_development_dependency 'minitest-line'
+  spec.add_development_dependency 'minitest-reporters'
   spec.add_development_dependency "pry"
   spec.add_development_dependency "awesome_print"
   spec.add_development_dependency "yard"
   spec.add_development_dependency "phantomjs.rb"
-  spec.add_development_dependency 'minitest-line'
-  spec.add_development_dependency 'minitest-reporters'
   spec.add_development_dependency 'roda'
+
 end

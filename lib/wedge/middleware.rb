@@ -37,21 +37,28 @@ class Wedge
               body << File.read("#{ROOT_PATH}/#{wedge_path}.rb")
             end if Wedge.config.debug
           when 'call'
-            body_data = scope.request.body.read
-            data      = scope.request.params
+              body_data = request.body.read
+              data      = request.params
 
-            begin
-              data.merge!(body_data ? JSON.parse(body_data) : {})
-            rescue
-              # can't be parsed by json
-            end
+              begin
+                # try json
+                data.merge!(body_data ? JSON.parse(body_data) : {})
+              rescue
+                begin
+                  # try form data
+                  data.merge!(body_data ? Rack::Utils.parse_query(body_data) : {})
+                rescue
+                  # no data
+                end
+              end
 
-            data          = data.indifferent
-            name          = data.delete(:wedge_name)
-            method_called = data.delete(:wedge_method_called)
-            method_args   = data.delete(:wedge_method_args)
+              data          = data.indifferent
+              name          = data.delete(:__wedge_name__)
+              method_called = data.delete(:__wedge_method__)
+              method_args   = data.delete(:__wedge_args__)
 
-            if method_args == 'wedge_data' && data
+            binding.pry
+            if method_args == '__wedge_data__' && data
               method_args   = [data]
               body << Wedge.scope!(app)[name].send(method_called, *method_args) || ''
             else
