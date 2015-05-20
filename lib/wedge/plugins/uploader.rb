@@ -260,7 +260,10 @@ class Wedge
       end
 
       def settings
-        @settings ||= store[:settings].dup
+        @settings ||= {
+          aws_access_key_id: 123456,
+          bucket: 'wedge'
+        }
       end
     end
   end

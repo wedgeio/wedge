@@ -208,7 +208,7 @@ class Wedge
 
       def html!(&b)
         unless RUBY_ENGINE == 'opal'
-          DOM.new HTML::DSL.html(&b).to_html
+          Wedge.html!(&b)
         end
       end
 
@@ -331,7 +331,7 @@ class Wedge
     end
 
     def wedge_html(&b)
-      DOM.new HTML::DSL.html(&b).to_html
+      Wedge.html!(&b)
     end
     alias_method :html!, :wedge_html
 

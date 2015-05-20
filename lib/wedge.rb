@@ -45,6 +45,10 @@ class Wedge
       "#{config.assets_url}#{config.cache_assets ? "/#{config.assets_key}" : ''}"
     end
 
+    def html!(&b)
+      DOM.new HTML::DSL.html(&b).to_html
+    end
+
     def script_tag
       "<script src='#{assets_url}/wedge.js'></script>"
     end
