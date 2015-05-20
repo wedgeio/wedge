@@ -20,10 +20,6 @@ class Playground
       end
     end
 
-    on :testing do
-      puts 'test'
-    end
-
     on :ready do
       button = dom.find("button")
       button.hide

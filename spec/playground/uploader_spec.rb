@@ -17,15 +17,13 @@ describe Playground::UploaderComponent do
   end
 
   context 'browser_events' do
-    # https://github.com/opal/opal-rspec/issues/20
-    # Stubbing doesn't working in opal-rspec so we have to do this
-    Wedge::Plugins::Uploader.instance_eval do
-      def settings
-        { aws_access_key_id: 123456, bucket: 'wedge' }
-      end
+    before do
+      Wedge::Plugins::Uploader.any_instance.stub(:settings).and_return({
+        aws_access_key_id: 123456,
+        bucket: 'wedge'
+      })
+      uploader.trigger :browser_events
     end
-
-    before { uploader.trigger :browser_events }
 
     it 'should have fine uploader button' do
       expect(uploader.dom.find('.qq-uploader').to_html).not_to be_empty
