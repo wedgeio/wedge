@@ -4,7 +4,7 @@ require 'app/components/uploader'
 describe Playground::UploaderComponent do
   subject(:uploader) { Wedge[:uploader] }
 
-  html Wedge.html! { button 'Upload' }
+  html Wedge.html! { button 'Upload' }.to_html
 
   context '#display' do
     subject { uploader.display }
@@ -17,17 +17,18 @@ describe Playground::UploaderComponent do
   end
 
   context 'browser_events' do
-    before do
-      # stub store settings
-      Wedge::Plugins::Uploader.any_instance.stub(:settings).and_return({
-        aws_access_key_id: 123456,
-        bucket: 'wedge'
-      })
-      uploader.trigger :browser_events
+    # https://github.com/opal/opal-rspec/issues/20
+    # Stubbing doesn't working in opal-rspec so we have to do this
+    Wedge::Plugins::Uploader.instance_eval do
+      def settings
+        { aws_access_key_id: 123456, bucket: 'wedge' }
+      end
     end
 
-    it 'should' do
-      puts 'here'
+    before { uploader.trigger :browser_events }
+
+    it 'should have fine uploader button' do
+      expect(uploader.dom.find('.qq-uploader').to_html).not_to be_empty
     end
   end if Wedge.client?
 end
