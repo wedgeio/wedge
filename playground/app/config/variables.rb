@@ -1,13 +1,14 @@
 Encoding.default_external = 'UTF-8'
 
-APP_ROOT              = File.expand_path '../../', __FILE__ unless defined?(APP_ROOT)
-RACK_ENV              = ENV.fetch('RACK_ENV') { 'development' }.freeze
+APP_ROOT = File.expand_path '../../', __FILE__ unless defined?(APP_ROOT)
+RACK_ENV = ENV.fetch('RACK_ENV') { 'development' }.freeze
 
 # Load environment variables
 %W{.env .env.#{ENV['RACK_ENV']}}.each do |file|
-  File.foreach file do |line|
+  file_path = "#{APP_ROOT}/../#{file}"
+  File.foreach file_path do |line|
     key, value = line.split "=", 2; ENV[key] = value.gsub('\n', '').strip
-  end if File.file? file
+  end if File.file? file_path
 end if %w{development test}.include? RACK_ENV
 
 APP_SECRET            = ENV.fetch('APP_SECRET').freeze
