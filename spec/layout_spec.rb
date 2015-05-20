@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'app/components/layout'
 
 describe 'Layout Component' do
-  it 'should something' do
+  it 'should have #display' do
     display = Wedge[:layout].display
 
     if Wedge.server?
