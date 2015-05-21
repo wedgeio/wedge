@@ -18,7 +18,7 @@ describe Playground::UploaderComponent do
 
   context 'browser_events' do
     before do
-      Wedge::Plugins::Uploader.any_instance.stub(:settings).and_return({
+      allow_any_instance_of(Wedge::Plugins::Uploader).to receive(:settings).and_return({
         aws_access_key_id: 123456,
         bucket: 'wedge'
       })

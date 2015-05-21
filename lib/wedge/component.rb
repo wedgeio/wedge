@@ -16,8 +16,10 @@ class Wedge
           end
         end
 
-        obj.config.before_compile.each do |blk|
-          obj.instance_exec &blk
+        unless RUBY_ENGINE == 'opal'
+          obj.config.before_compile.each do |blk|
+            obj.instance_exec &blk
+          end
         end
 
         if args.length > 0
@@ -208,7 +210,7 @@ class Wedge
 
       def html!(&b)
         unless RUBY_ENGINE == 'opal'
-          Wedge.html!(&b)
+          Wedge.html!(self, &b)
         end
       end
 
@@ -308,7 +310,11 @@ class Wedge
       return unless server?
 
       client_data = config.client_data.dup
-      client_data.merge! method_called: method, method_args: args, initialize_args: config.initialize_args
+      client_data.merge!(
+        method_called: method,
+        method_args: args,
+        initialize_args: config.initialize_args
+      )
 
       compiled_opts = Base64.encode64 client_data.to_json
       javascript = <<-JS
@@ -331,7 +337,7 @@ class Wedge
     end
 
     def wedge_html(&b)
-      Wedge.html!(&b)
+      Wedge.html!(self, &b)
     end
     alias_method :html!, :wedge_html
 

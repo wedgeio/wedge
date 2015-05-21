@@ -45,8 +45,8 @@ class Wedge
       "#{config.assets_url}#{config.cache_assets ? "/#{config.assets_key}" : ''}"
     end
 
-    def html!(&b)
-      DOM.new HTML::DSL.html(&b).to_html
+    def html!(scope = false, &b)
+      DOM.new HTML::DSL.scope!(scope).html(&b).to_html
     end
 
     def script_tag
@@ -139,7 +139,7 @@ class Wedge
 
       if server?
         javascript_cache[path_name] ||= begin
-          js = build(path_name, options).javascript
+          js = options.delete(:js) || build(path_name, options).javascript
 
           if path_name == 'wedge'
             compiled_data = Base64.encode64 config.client_data.to_json
@@ -151,6 +151,7 @@ class Wedge
               js << Wedge.javascript(path)
             end
           elsif comp_class = Wedge.config.component_class[path_name.gsub(/\//, '__')]
+            comp_class.config.before_compile.each { |blk| comp_class.instance_eval(&blk) }
             comp_name     = comp_class.config.name
             compiled_data = Base64.encode64 comp_class.config.client_data.to_json
 
@@ -166,10 +167,15 @@ class Wedge
         cache = options[:cache_assets]
 
         `jQuery.ajax({ url: url, dataType: "script", cache: cache }).done(function() {`
+          # fix: at the moment to_js called from the server will set the class
+          # store for whatever method it calls.  we need to think of a better idea
+          # for global and local data store.
+          Wedge.config.component_class[options[:name]].config.store = options[:store].indifferent
+
           if initialize_args = options.delete(:initialize_args)
-            comp = Wedge.store!(options[:store].indifferent)[options[:name], *initialize_args]
+            comp = Wedge[options[:name], *initialize_args]
           else
-            comp = Wedge.store!(options[:store].indifferent)[options[:name]]
+            comp = Wedge[options[:name]]
           end
 
           if options[:method_args].any?

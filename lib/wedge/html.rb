@@ -55,13 +55,31 @@ class Wedge
       end
 
       def method_missing(tag, *args, &block)
-        child = DSL.new(tag.to_s, *args, &block)
-        children << child
-        child
+        if scope.respond_to?(tag, true)
+          scope.send(tag, *args, &block)
+        else
+          child = DSL.scope!(scope).new(tag.to_s, *args, &block)
+          children << child
+          child
+        end
       end
 
-      def self.method_missing(tag, *args, &block)
-        DSL.new(tag.to_s, *args, &block)
+      def scope
+        self.class.scope
+      end
+
+      class  << self
+        attr_accessor :scope
+
+        def method_missing(tag, *args, &block)
+          DSL.scope!(scope).new(tag.to_s, *args, &block)
+        end
+
+        def scope! scope
+          klass = Class.new(self)
+          klass.instance_variable_set(:@scope, scope)
+          klass
+        end
       end
     end
   end

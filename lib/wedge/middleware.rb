@@ -37,35 +37,34 @@ class Wedge
               body << File.read("#{ROOT_PATH}/#{wedge_path}.rb")
             end if Wedge.config.debug
           when 'call'
-              body_data = request.body.read
-              data      = request.params
+            body_data = request.body.read
+            data      = request.params
 
+            begin
+              # try json
+              data.merge!(body_data ? JSON.parse(body_data) : {})
+            rescue
               begin
-                # try json
-                data.merge!(body_data ? JSON.parse(body_data) : {})
+                # try form data
+                data.merge!(body_data ? Rack::Utils.parse_query(body_data) : {})
               rescue
-                begin
-                  # try form data
-                  data.merge!(body_data ? Rack::Utils.parse_query(body_data) : {})
-                rescue
-                  # no data
-                end
+                # no data
               end
+            end
 
-              data          = data.indifferent
-              name          = data.delete(:__wedge_name__)
-              method_called = data.delete(:__wedge_method__)
-              method_args   = data.delete(:__wedge_args__)
+            data          = data.indifferent
+            name          = data.delete(:__wedge_name__)
+            method_called = data.delete(:__wedge_method__)
+            method_args   = data.delete(:__wedge_args__)
 
-            binding.pry
             if method_args == '__wedge_data__' && data
               method_args   = [data]
-              body << Wedge.scope!(app)[name].send(method_called, *method_args) || ''
+              res = Wedge.scope!(self)[name].send(method_called, *method_args) || ''
             else
               # This used to send things like init, we need a better way to
               # send client config data to the server
               # res = scope.wedge(name, data).send(method_called, *method_args) || ''
-              body << Wedge.scope!(app)[name].send(method_called, *method_args) || ''
+              res = Wedge.scope!(self)[name].send(method_called, *method_args) || ''
             end
 
             # headers["WEDGE-CSRF-TOKEN"] = scope.csrf_token if scope.methods.include? :csrf_token
@@ -90,6 +89,10 @@ class Wedge
         else
           response.finish
         end
+      end
+
+      def wedge(*args, &block)
+        Wedge[*args, &block]
       end
 
       private

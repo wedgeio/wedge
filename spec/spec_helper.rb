@@ -4,6 +4,7 @@ if RUBY_ENGINE == 'opal'
   require 'opal/jquery'
   require 'opal/jquery/rspec'
 else
+
   ENV['RACK_ENV'] ||= 'test'
 
   $:.unshift(File.expand_path("../lib", File.dirname(__FILE__)))

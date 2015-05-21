@@ -8,7 +8,17 @@ class Playground
       set_dom dom.find('body').html
     end
 
+    def initialize
+      store[:foo] = 'bar' if server?
+    end
+
     def display
+      # todo: make a test for this:
+      puts html! {
+        if foo = store[:foo]
+          div foo
+        end
+      }.to_html
       wedge(:layout).display { dom }
     end
 
@@ -21,6 +31,7 @@ class Playground
     end
 
     on :ready do
+      puts store[:foo]
       button = dom.find("button")
       button.hide
       wedge_plugin(:uploader).button button, {

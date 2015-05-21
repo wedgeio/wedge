@@ -5,7 +5,7 @@ class Wedge
       before_compile do
         settings = Wedge.config.settings[:uploader]
         store[:settings] = settings.select do |k, v|
-          client?? %w(aws_access_key_id bucket).include?(k) : true
+          client? ? %w(aws_access_key_id bucket).include?(k) : true
         end if settings
       end
 
@@ -82,7 +82,7 @@ class Wedge
         key           = options.delete(:aws_name) || '{name}-{uuid}'
 
         # add s3 container
-        el.after drag_n_drop_tmpl template_id
+        el.after drag_n_drop_tmpl template_id, options
         el.after "<div id='#{container_id}'></div>"
 
         container = dom.find("##{container_id}")
@@ -221,12 +221,12 @@ class Wedge
         end
       end
 
-      def drag_n_drop_tmpl id
+      def drag_n_drop_tmpl id, options = {}
         <<-EOF
         <script type="text/template" id="#{id}">
           <div class="qq-uploader-selector qq-uploader">
             <div class="qq-upload-button-selector qq-upload-button">
-              <div>Upload a file</div>
+              <div>#{options.delete(:button_name) || 'Upload a file'}</div>
             </div>
             <div class="qq-upload-drop-area-selector qq-upload-drop-area" qq-hide-dropzone>
                 <span>Drop file here to upload</span> </div>
@@ -260,10 +260,7 @@ class Wedge
       end
 
       def settings
-        @settings ||= {
-          aws_access_key_id: 123456,
-          bucket: 'wedge'
-        }
+        @settings ||= store[:settings]
       end
     end
   end
