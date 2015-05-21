@@ -45,8 +45,12 @@ class Wedge
       "#{config.assets_url}#{config.cache_assets ? "/#{config.assets_key}" : ''}"
     end
 
-    def html!(scope = false, &b)
-      DOM.new HTML::DSL.scope!(scope).html(&b).to_html
+    def html!(scope = false, &block)
+      if !block_given?
+        DOM.new HTML::DSL.html(&scope).to_html
+      else
+        DOM.new HTML::DSL.scope!(scope).html(&block).to_html
+      end
     end
 
     def script_tag

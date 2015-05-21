@@ -28,6 +28,15 @@ class Wedge
       end
     end
 
+    TAGS = %w{a button abbr acronym address applet area article aside audio b base basefont bdi
+bdo big blockquote body br canvas caption center cite code col colgroup command
+datalist dd del details dfn dialog dir div dl dt em embed fieldset figcaption
+figure font footer form frame frameset h1 head header hgroup hr html i iframe
+img input ins kbd keygen label legend li link map mark menu meta meter nav noframes
+noscript object ol optgroup option output p param pre progress q rp rt ruby s samp
+script section select small source span strike strong style sub summary sup table tbody
+td textarea tfoot th thead time title tr track tt u ul var video wbr}
+
     # http://erikonrails.snowedin.net/?p=379
     class DSL
       def initialize(tag, *args, &block)
@@ -55,7 +64,7 @@ class Wedge
       end
 
       def method_missing(tag, *args, &block)
-        if scope.respond_to?(tag, true)
+        if !TAGS.include?(tag.to_s) && scope.respond_to?(tag, true)
           scope.send(tag, *args, &block)
         else
           child = DSL.scope!(scope).new(tag.to_s, *args, &block)
@@ -68,12 +77,12 @@ class Wedge
         self.class.scope
       end
 
-      class  << self
-        attr_accessor :scope
+      def self.method_missing(tag, *args, &block)
+        DSL.scope!(scope).new(tag.to_s, *args, &block)
+      end
 
-        def method_missing(tag, *args, &block)
-          DSL.scope!(scope).new(tag.to_s, *args, &block)
-        end
+      class << self
+        attr_accessor :scope
 
         def scope! scope
           klass = Class.new(self)

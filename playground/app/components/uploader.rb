@@ -14,11 +14,11 @@ class Playground
 
     def display
       # todo: make a test for this:
-      puts html! {
-        if foo = store[:foo]
-          div foo
-        end
-      }.to_html
+      # puts html! {
+      #   if foo = store[:foo]
+      #     div foo
+      #   end
+      # }.to_html
       wedge(:layout).display { dom }
     end
 
@@ -31,7 +31,6 @@ class Playground
     end
 
     on :ready do
-      puts store[:foo]
       button = dom.find("button")
       button.hide
       wedge_plugin(:uploader).button button, {
