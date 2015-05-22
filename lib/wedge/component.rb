@@ -17,7 +17,7 @@ class Wedge
         end
 
         unless RUBY_ENGINE == 'opal'
-          obj.config.before_compile.each do |blk|
+          obj.config.on_compile.each do |blk|
             obj.instance_exec &blk
           end
         end
@@ -118,11 +118,14 @@ class Wedge
       alias_method :config, :wedge_config
 
       def wedge_on(*args, &block)
-        if args.first.to_s != 'server'
+        case args.first.to_s
+        when 'server'
+          wedge_on_server(&block)
+        when 'compile'
+          wedge_config.on_compile << block unless RUBY_ENGINE == 'opal'
+        else
           @wedge_on_count += 1
           Wedge.events.add config.name, *args, &block
-        else
-          wedge_on_server(&block)
         end
       end
       alias_method :on, :wedge_on
@@ -216,10 +219,6 @@ class Wedge
 
       def store
         wedge_config.store
-      end
-
-      def before_compile &block
-        wedge_config.before_compile << block unless RUBY_ENGINE == 'opal'
       end
     end
 

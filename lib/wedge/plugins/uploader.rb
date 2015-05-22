@@ -2,7 +2,8 @@ class Wedge
   module Plugins
     class Uploader < Component
       name :uploader, :uploader_plugin
-      before_compile do
+
+      on :compile do
         settings = Wedge.config.settings[:uploader]
         store[:settings] = settings.select do |k, v|
           client? ? %w(aws_access_key_id bucket).include?(k) : true
