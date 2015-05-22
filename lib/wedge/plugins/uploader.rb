@@ -71,6 +71,17 @@ class Wedge
         end
       end
 
+      def resume options = {}
+        options     = options.indifferent
+        wedge_name   = options.delete :wedge_name
+        wedge_method = options.delete :resume_method
+
+        if wedge_name
+          response.headers["Content-Type"] = 'application/json; charset=UTF-8'
+          wedge(wedge_name).send(wedge_method, options)
+        end
+      end
+
       def button el, options = {}
         options = { multiple: false }.merge options
         drag_n_drop el, options
@@ -196,12 +207,13 @@ class Wedge
           }
         end
 
-        # if options[:resume_method]
-        #   uploader_settings[:session] = {
-        #     endpoint: "#{Wedge.assets_url}/app/components/#{options[:wedge_name]}.call?wedge_method=#{options[:resume_method]}&wedge_method_args=wedge_data&wedge_name=registration",
-        #     params: options
-        #   }
-        # end
+        if options[:resume_method]
+          uploader_settings[:session] = {
+            endpoint: "#{Wedge.assets_url}/wedge/plugins/uploader.call?__wedge_method__=resume&__wedge_args__=__wedge_data__&__wedge_name__=uploader_plugin",
+            # endpoint: "#{Wedge.assets_url}/app/components/#{options[:wedge_name]}.call?wedge_method=#{options[:resume_method]}&wedge_method_args=wedge_data&wedge_name=registration",
+            params: options
+          }
+        end
         if !options[:multiple].nil?
           uploader_settings[:multiple] = options.delete(:multiple)
         end
