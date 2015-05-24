@@ -18,7 +18,7 @@ class Wedge
         scope: nil,
         debug: false,
         assets_url: '/assets/wedge',
-        assets_key: false,
+        assets_key: nil,
         cache_assets: false,
         is_plugin: false,
         requires: IndifferentHash.new,

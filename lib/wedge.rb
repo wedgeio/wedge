@@ -47,10 +47,12 @@ class Wedge
 
     def html!(scope = false, &block)
       if !block_given?
-        DOM.new HTML::DSL.html(&scope).to_html
+        html = HTML::DSL.html(&scope).to_html
       else
-        DOM.new HTML::DSL.scope!(scope).html(&block).to_html
+        html = HTML::DSL.scope!(scope).html(&block).to_html
       end
+
+      DOM.new html
     end
 
     def script_tag
@@ -130,9 +132,9 @@ class Wedge
           # fix: make this a config option i.e.
           # gems: [:ability_list]
           # then grab that path and add it to the opal path list
-          Dir["#{gems_dir}/**/"].sort.each do |folder|
-            Wedge::Opal.append_path "#{folder}/lib"
-          end
+          # Dir["#{gems_dir}/**/"].sort.each do |folder|
+          #   Wedge::Opal.append_path "#{folder}/lib"
+          # end
         end
       end
     end

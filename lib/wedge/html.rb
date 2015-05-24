@@ -40,16 +40,20 @@ td textarea tfoot th thead time title tr track tt u ul var video wbr}
     # http://erikonrails.snowedin.net/?p=379
     class DSL
       def initialize(tag, *args, &block)
-        @tag = tag
-        @content = args.find {|a| a.instance_of? String}
-        @attributes = args.find{|a| a.instance_of? Hash}
+        @tag         = tag
+        @content     = args.find { |a| a.instance_of? String }
+        @attributes  = args.find { |a| a.instance_of? Hash }
         @attr_string = []
         self.instance_eval &block if block_given?
       end
 
       def to_html
-        @attr_string << " #{@attributes.map {|k,v| "#{k}=#{v.to_s.inspect}" }.join(" ")}" if @attributes
-        "<#{@tag}#{@attr_string.join}>#{@content}#{children.map(&:to_html).join}</#{@tag}>"
+        if @tag
+          @attr_string << " #{@attributes.map {|k,v| "#{k}=#{v.to_s.inspect}" }.join(" ")}" if @attributes
+          "<#{@tag}#{@attr_string.join}>#{@content}#{children.map(&:to_html).join}</#{@tag}>"
+        else
+          "#{@content}#{children.map(&:to_html).join}"
+        end
       end
 
       def children
@@ -57,7 +61,7 @@ td textarea tfoot th thead time title tr track tt u ul var video wbr}
       end
 
       # Some of these are Kernel or Object methods or whatever that we need to explicitly override
-      [:p, :select].each do |name|  
+      [:p, :select].each do |name|
         define_method name do |*args, &block|
           send :method_missing, name, *args, &block
         end
@@ -77,8 +81,9 @@ td textarea tfoot th thead time title tr track tt u ul var video wbr}
         self.class.scope
       end
 
-      def self.method_missing(tag, *args, &block)
-        DSL.scope!(scope).new(tag.to_s, *args, &block)
+      # fix: opal bug. for some reason this can't be in the class << self block.
+      def self.html &block
+        DSL.scope!(scope).new(nil, nil, &block)
       end
 
       class << self

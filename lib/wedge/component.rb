@@ -212,9 +212,7 @@ class Wedge
       end
 
       def html!(&b)
-        unless RUBY_ENGINE == 'opal'
-          Wedge.html!(self, &b)
-        end
+        Wedge.html!(self, &b)
       end
 
       def store
