@@ -7,6 +7,11 @@ describe Wedge do
       it 'should have an assets key' do
         expect(Wedge.config.assets_key).not_to be_nil
       end
+
+      it 'should return javascript and resource maps', :slow do
+        expect(Wedge.javascript).to match /Opal/
+        expect(Wedge.source_map).to match /mappings/
+      end
     else
       it 'should not have an assets key' do
         expect(Wedge.config.assets_key).to be_nil

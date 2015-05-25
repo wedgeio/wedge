@@ -16,8 +16,9 @@ else
     def html(_); end
   end
 
-  RSpec.configure do |config|
-    config.extend RSpecHelpers
+  RSpec.configure do |c|
+    c.extend RSpecHelpers
+    c.filter_run_excluding :slow
   end
 
   require 'app/config/boot'
