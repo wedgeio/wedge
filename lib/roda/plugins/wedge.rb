@@ -26,7 +26,7 @@ class Roda
         end
 
         # cache the javascript on load
-        Wedge.javascript if opts[:cache_assets]
+        ::Wedge.javascript if opts[:cache_assets]
       end
 
       module InstanceMethods
