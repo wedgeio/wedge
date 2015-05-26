@@ -56,7 +56,7 @@ class Wedge
     end
 
     def script_tag
-      "<script src='#{assets_url}/wedge.js'></script>"
+      "<script src='#{assets_url_with_host}/wedge.js'></script>"
     end
 
     unless RUBY_ENGINE == 'opal'
