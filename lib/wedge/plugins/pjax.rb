@@ -1,16 +1,3 @@
-if RUBY_ENGINE == 'opal'
-  class Element
-    alias_native :mask
-    alias_native :remove_data, :removeData
-    alias_native :replace_with, :replaceWith
-    alias_native :selectize
-
-    def date_picker options = {}
-      `self.datepicker(JSON.parse(#{options.to_json}))`
-    end
-  end
-end
-
 require 'wedge/plugins/history'
 
 class Wedge

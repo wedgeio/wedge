@@ -163,12 +163,12 @@ class Wedge
                 enabled: true
             },
 
-            thumbnails: {
-                placeholders: {
-                    # notAvailablePath: "assets/not_available-generic.png",
-                    # waitingPath: "assets/waiting-generic.png"
-                }
-            },
+            # thumbnails: {
+            #     placeholders: {
+            #         # notAvailablePath: "assets/not_available-generic.png",
+            #         # waitingPath: "assets/waiting-generic.png"
+            #     }
+            # },
 
             callbacks: {
               onSubmitted: function { |fu_id|
@@ -187,6 +187,15 @@ class Wedge
               }
             }
         }
+
+        if resize = options[:resize]
+          uploader_settings[:scaling] = {
+            sendOriginal: false,
+            sizes: [
+              { name: "#{resize}", maxSize: resize }
+            ]
+          }
+        end
 
         if options[:delete_method]
           uploader_settings[:deleteFile] = {

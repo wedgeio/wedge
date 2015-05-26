@@ -16,3 +16,13 @@ class Wedge
   # Create our own opal instance.
   Opal = ::Opal.dup
 end
+
+if RUBY_ENGINE == 'opal'
+  class Element
+    alias_native :mask
+    alias_native :remove_data, :removeData
+    alias_native :replace_with, :replaceWith
+    alias_native :selectize
+  end
+end
+
