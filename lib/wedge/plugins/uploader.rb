@@ -197,6 +197,14 @@ class Wedge
           }
         end
 
+        # This is needed to support IE9 and higher for S3 Uploaders
+        # This was pointed out on the FineUploader page regarding this tool
+        if options[:local_blank_page]
+          uploader_settings[:iframeSupport] = {
+            localBlankPagePath: options[:local_blank_page]
+          }
+        end
+
         if options[:delete_method]
           uploader_settings[:deleteFile] = {
             enabled: true,
