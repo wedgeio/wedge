@@ -1,3 +1,5 @@
+require_relative 'layout'
+
 class Playground
   class IndexComponent < Wedge::Component
     name :index

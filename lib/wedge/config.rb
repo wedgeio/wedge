@@ -17,6 +17,7 @@ class Wedge
         html: nil,
         scope: nil,
         debug: false,
+        app_dir: 'app',
         assets_url: '/assets/wedge',
         assets_key: nil,
         cache_assets: false,

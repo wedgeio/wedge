@@ -25,8 +25,14 @@ class Playground
     }
   }
 
+  # builder = Opal::Builder.new(:stubs=>['opal'])
+  # builder.append_paths(APP_ROOT)
+  # builder.use_gem('opal-jquery')
+  # builder.use_gem('wedge')
+
   plugin :assets, {
     path: "#{APP_ROOT}/../", css_dir: '', js_dir: '', group_subdirs: false,
+    # js_opts: { builder: builder }
     css: {
       default: [
         'public/vendor/normalize-css/normalize.css',

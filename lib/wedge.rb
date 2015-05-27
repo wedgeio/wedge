@@ -145,28 +145,7 @@ class Wedge
 
       if server?
         javascript_cache[path_name] ||= begin
-          js = options.delete(:js) || build(path_name, options).javascript
-
-          if path_name == 'wedge'
-            compiled_data = Base64.encode64 config.client_data.to_json
-            # We need to merge in some data that is only set on the server.
-            # i.e. path, assets_key etc....
-            js << Opal.compile("Wedge.config.data = HashObject.new(Wedge.config.data.to_h.merge JSON.parse(Base64.decode64('#{compiled_data}')))")
-            # load all global plugins into wedge
-            config.plugins.each do |path|
-              js << Wedge.javascript(path)
-            end
-          elsif comp_class = Wedge.config.component_class[path_name.gsub(/\//, '__')]
-            comp_class.config.on_compile.each { |blk| comp_class.instance_eval(&blk) }
-            comp_name     = comp_class.config.name
-            compiled_data = Base64.encode64 comp_class.config.client_data.to_json
-
-            js << Opal.compile("Wedge.config.component_class[:#{comp_name}].config.data = HashObject.new(Wedge.config.component_class[:#{comp_name}].config.data.to_h.merge JSON.parse(Base64.decode64('#{compiled_data}')))")
-
-            load_requires path_name, js
-          end
-
-          js
+          build(path_name, options).to_s
         end
       else
         url   = "#{Wedge.assets_url_with_host}/#{options[:path]}.js"
@@ -193,23 +172,6 @@ class Wedge
           Wedge.trigger_browser_events
 
          `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); })`
-      end
-    end
-
-    def load_requires path_name, js
-      if requires = config.requires[path_name.gsub(/\//, '__')]
-        requires.each do |path|
-          next unless comp_class = Wedge.config.component_class[path]
-
-          comp_class.config.on_compile.each { |blk| comp_class.instance_eval(&blk) }
-
-          comp_name     = comp_class.config.name
-          compiled_data = Base64.encode64 comp_class.config.client_data.to_json
-
-          load_requires path, js
-
-          js << Opal.compile("Wedge.config.component_class[:#{comp_name}].config.data = HashObject.new(Wedge.config.component_class[:#{comp_name}].config.data.to_h.merge JSON.parse(Base64.decode64('#{compiled_data}')))")
-        end
       end
     end
 
