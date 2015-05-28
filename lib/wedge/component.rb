@@ -125,7 +125,7 @@ class Wedge
           wedge_config.on_compile << block unless RUBY_ENGINE == 'opal'
         else
           @wedge_on_count += 1
-          Wedge.events.add config.name, *args, &block
+          Wedge.events.add(config.name, *args, &block)
         end
       end
       alias_method :on, :wedge_on

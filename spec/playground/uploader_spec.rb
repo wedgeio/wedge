@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'app/components/uploader'
+require 'components/uploader'
 
 describe Playground::UploaderComponent do
   subject(:uploader) { Wedge[:uploader] }

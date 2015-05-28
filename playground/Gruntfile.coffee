@@ -61,6 +61,7 @@ module.exports = (grunt) ->
           'jquery/jquery.js': 'jquery/dist/jquery.js'
           'font-awesome/fonts': 'font-awesome/fonts'
           'normalize-css/normalize.css': 'normalize-css/normalize.css'
+          'fine-uploader/s3.jquery.fine-uploader.js': 'bower_components/fine-uploader/_build/s3.jquery.fine-uploader.js'
 
     # grunt watch (or simply grunt)
     watch:

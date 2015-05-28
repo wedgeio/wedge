@@ -1,13 +1,9 @@
-require File.expand_path '../variables', __FILE__
+$:.unshift(File.expand_path("../../app", File.dirname(__FILE__)))
 
-begin
-  # use `bundle install --standalone --binstubs .bundle/bin' to get this...
-  require_relative '../.bundle/bundler/setup'
-rescue LoadError
-  # fall back to regular bundler if the developer hasn't bundled standalone
-  require 'bundler'
-  Bundler.setup :default, RACK_ENV
-end
+require 'config/variables'
+
+require 'bundler'
+Bundler.setup :default, RACK_ENV
 
 require 'roda'
 require 'wedge'

@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'app/components/layout'
+require 'components/layout'
 
 describe Playground::LayoutComponent do
   subject(:layout) { Wedge[:layout] }
