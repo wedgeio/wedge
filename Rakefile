@@ -1,15 +1,19 @@
+$:.unshift(File.expand_path('./lib'))
+$:.unshift(File.expand_path("./playground/app"))
+
 require 'bundler'
 require 'bundler/gem_tasks'
 require 'bundler/setup'
 
+require 'config/boot'
 require 'opal'
+require 'opal/rspec/rake_task'
 
 Opal.use_gem('wedge')
 Opal.append_path File.expand_path('../lib', __FILE__)
 Opal.append_path File.expand_path('../playground/app', __FILE__)
 Opal.append_path File.expand_path('../playground/public', __FILE__)
 
-require 'opal/rspec/rake_task'
 Opal::RSpec::RakeTask.new('opal:rspec') do |s|
   s.index_path = 'spec/index.html.erb'
 end

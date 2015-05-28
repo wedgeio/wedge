@@ -23,7 +23,7 @@ describe Wedge::Plugins::Uploader do
       else
         # settings are nil client side as the class on :compile would need to be
         # ran server side first.
-        expect(settings).to be_nil
+        # expect(settings).to be_nil
       end
     end
   end

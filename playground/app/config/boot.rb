@@ -13,7 +13,7 @@ require 'awesome_print'
 
 class Playground < Roda; end
 
-require_relative '../app'
+require 'app'
 
 Dir["#{APP_ROOT}/forms/*.rb"].sort.each { |file| require file }
 Dir["#{APP_ROOT}/components/*.rb"].sort.each { |file| require file }
