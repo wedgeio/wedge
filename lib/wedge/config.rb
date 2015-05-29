@@ -50,7 +50,7 @@ class Wedge
       plugins << klass.config.path unless plugins.include? klass.config.path
 
       # Merge in instance/class methods
-      Wedge::Component.include(klass::InstanceMethods) if defined?(klass::InstanceMethods)
+      Wedge::Component.send(:include, klass::InstanceMethods) if defined?(klass::InstanceMethods)
       Wedge::Component.extend(klass::ClassMethods) if defined?(klass::ClassMethods)
     end
 
