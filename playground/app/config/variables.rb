@@ -11,7 +11,7 @@ RACK_ENV = ENV.fetch('RACK_ENV') { 'development' }.freeze
   end if File.file? file_path
 end if %w{development test}.include? RACK_ENV
 
-APP_SECRET            = ENV.fetch('APP_SECRET').freeze
-AWS_ACCESS_KEY_ID     = ENV.fetch('AWS_ACCESS_KEY_ID').freeze
-AWS_SECRET_ACCESS_KEY = ENV.fetch('AWS_SECRET_ACCESS_KEY').freeze
-AWS_BUCKET            = ENV.fetch('AWS_BUCKET').freeze
+APP_SECRET            = ENV.fetch('APP_SECRET') { 'abc123' }.freeze
+AWS_ACCESS_KEY_ID     = ENV.fetch('AWS_ACCESS_KEY_ID') { '123456' }.freeze
+AWS_SECRET_ACCESS_KEY = ENV.fetch('AWS_SECRET_ACCESS_KEY') { '654321' }.freeze
+AWS_BUCKET            = ENV.fetch('AWS_BUCKET') { 'wedge' }.freeze

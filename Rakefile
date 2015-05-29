@@ -9,7 +9,6 @@ require 'config/boot'
 require 'opal'
 require 'opal/rspec/rake_task'
 
-Opal.use_gem('wedge')
 Opal.append_path File.expand_path('../lib', __FILE__)
 Opal.append_path File.expand_path('../playground/app', __FILE__)
 Opal.append_path File.expand_path('../playground/public', __FILE__)

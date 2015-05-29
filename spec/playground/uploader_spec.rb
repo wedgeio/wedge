@@ -1,18 +1,8 @@
 require 'spec_helper'
 require 'components/uploader'
 
-describe 'auth' do
-  context 'errors' do
-    if Wedge.server?
-      it 'to return wrong username or password' do
-        expect(Wedge[:auth].login_user({})[:errors]).to match /wrong username or password/i
-      end
-    else
-      puts Wedge[:uploader].config.data.to_h
-      puts Wedge.config.data.to_h
-      puts Wedge.events.events
-    end
-  end
+describe 'Playground::UploaderComponent' do
+  puts Wedge.events.events
   # subject(:uploader) { Wedge[:uploader] }
   #
   # html Wedge.html! { button 'Upload' }.to_html
