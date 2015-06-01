@@ -155,7 +155,7 @@ class Wedge
             atts[att] = _attributes.send(att)
 
             if form_name = _form[att.to_s.to_sym]
-              atts[att] = wedge(form_name, atts[att]).attributes
+              atts[att] = wedge(form_name, atts[att].respond_to?(:attributes)? atts[att].attributes : atts[att]).attributes
             end
           end
         end
