@@ -19,7 +19,7 @@ module Titleize
   #   "the good german"    # => "The Good German"
   def titleize(title)
     title = title.dup
-    title.downcase! unless title[/[[:lower:]]/]  # assume all-caps need fixing
+    title = title.downcase unless title[/[[:lower:]]/]  # assume all-caps need fixing
 
     phrases(title).map do |phrase|
       words = phrase.split
@@ -62,6 +62,7 @@ module Titleize
     if phrases.size > 1
       phrases[0..-2].each_with_index do |phrase, index|
         if SMALL_WORDS.include?(phrase.split.last.downcase)
+          # phrases[index] = "#{phrases[index]} #{phrases.slice!(index + 1)}"
           phrases[index] << " " + phrases.slice!(index + 1)
         end
       end

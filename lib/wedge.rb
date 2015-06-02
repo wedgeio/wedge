@@ -180,6 +180,7 @@ class Wedge
         args = { component_class: IndifferentHash.new }
 
         unless RUBY_ENGINE == 'opal'
+          args[:path]       = method(:assets_url).source_location.first.sub('/wedge.rb', '')
           args[:assets_key] = begin
             if defined?(PlatformAPI) && ENV['HEROKU_TOKEN'] && ENV['HEROKU_APP']
               heroku = PlatformAPI.connect_oauth(ENV['HEROKU_TOKEN'], default_headers: {'Range' => 'version ..; order=desc'})

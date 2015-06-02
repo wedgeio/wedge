@@ -59,7 +59,7 @@ class Roda
                 path = ::Wedge.config.path.gsub(/\/wedge.rb$/, '')
                 File.read("#{path}/#{component}.rb")
               else
-                File.read("#{ROOT_PATH}/#{component}.rb")
+                File.read("#{component}.rb")
               end
             when 'call'
               body = scope.request.body.read
