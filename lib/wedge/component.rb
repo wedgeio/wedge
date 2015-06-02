@@ -38,7 +38,7 @@ class Wedge
           unless RUBY_ENGINE == 'opal'
             # set the file path
             path = "#{caller[0]}".gsub(/(?<=\.rb):.*/, '')
-              .gsub(%r{(#{Dir.pwd}/|.*(?=wedge))}, '')
+              .gsub(%r{(#{Dir.pwd}/#{Wedge.config.app_dir}/|.*(?=wedge))}, '')
               .gsub(/\.rb$/, '')
           end
 

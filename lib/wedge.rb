@@ -125,16 +125,8 @@ class Wedge
       # @return [Array] List of opal paths.
       def append_paths
         @append_paths ||= begin
-          file     = method(:assets_url).source_location.first.sub('/wedge.rb', '')
-          gems_dir = ::Opal.gem_dir.gsub(/(?<=gems)\/opal-.*/, '')
-          Wedge::Opal.append_path file
-          Wedge::Opal.append_path Dir.pwd
-          # fix: make this a config option i.e.
-          # gems: [:ability_list]
-          # then grab that path and add it to the opal path list
-          # Dir["#{gems_dir}/**/"].sort.each do |folder|
-          #   Wedge::Opal.append_path "#{folder}/lib"
-          # end
+          Wedge::Opal.append_path method(:assets_url).source_location.first.sub('/wedge.rb', '')
+          Wedge::Opal.append_path "#{Dir.pwd}/#{config.app_dir}"
         end
       end
     end
