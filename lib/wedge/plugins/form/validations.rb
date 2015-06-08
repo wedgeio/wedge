@@ -88,18 +88,24 @@ class Wedge
         #   end
         #
         def valid?
-          errors.clear
+          _errors.clear
           validate
-          errors.empty?
+          _errors.empty?
         end
 
         # Base validate implementation. Override this method in subclasses.
         def validate
         end
 
-        # Hash of errors for each attribute in this model.
         def errors
-          @errors ||= Hash.new { |hash, key| hash[key] = [] }
+          IndifferentHash.new(_errors)
+        end
+
+        # Hash of errors for each attribute in this model.
+        def _errors
+          @_errors ||= Hash.new do |hash, key|
+            hash[key] = _accessor_options[key].key?(:form) ? {} : []
+          end
         end
 
         protected
@@ -130,14 +136,12 @@ class Wedge
           if att.is_a? Array
             att.each { |a| assert_present(a, error = [a, :not_present])}
           else
-            if form_name = _form[att]
-              options = {}
-              options[:key] = _options[:key] if _options.key? :key
-
-              f = wedge(form_name, _attributes.send(att).attributes, options)
-              assert(f.valid?, [att, f.errors])
+            att_options = _accessor_options[att].deep_dup
+            if form_name = att_options.delete(:form)
+              f = wedge("#{form_name}_form", send(att).attributes, att_options)
+              assert(f.valid?, [att, f._errors])
             else
-              assert(!_attributes.send(att).to_s.empty?, error)
+              assert(!send(att).to_s.empty?, error)
             end
           end
         end
@@ -158,9 +162,9 @@ class Wedge
         end
 
         if client?
-          URL = /^(http|https):\/\/([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}|(2 5[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3} |localhost)(:[0-9]{1,5})?(\/.*)?$/i
+          URL = /^(http|https):\/\/([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}|(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}|localhost)(:[0-9]{1,5})?(\/.*)?$/i
         else
-          URL = /\A(http|https):\/\/([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}|(2 5[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3} |localhost)(:[0-9]{1,5})?(\/.*)?\z/i
+          URL = /\A(http|https):\/\/([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}|(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}|localhost)(:[0-9]{1,5})?(\/.*)?\z/i
         end
 
         def assert_url(att, error = [att, :not_url])
@@ -243,7 +247,11 @@ class Wedge
         #     end
         #   end
         def assert(value, error)
-          value or errors[error.first].push(error.last) && false
+          value or begin
+            name   = error.shift.to_s
+            errors = _errors[name]
+            (errors.is_a?(Array) ? errors.concat(error) : errors.merge!(error.first)) && false
+          end
         end
       end
     end

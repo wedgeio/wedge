@@ -1,4 +1,4 @@
-require 'opal'
+require 'opal' unless defined? Opal
 require 'opal-jquery'
 
 unless RUBY_ENGINE == 'opal'

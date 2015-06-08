@@ -1,4 +1,4 @@
-require 'wedge/plugins/validations'
+require_relative 'form/validations'
 require 'forwardable'
 
 class Wedge
@@ -6,15 +6,19 @@ class Wedge
     class Form < Component
       name :form_plugin
 
+      attr_reader :_atts
+
       include Methods
       include Validations
 
+      # This allows us to call super
       module Delegates
         def _delegates(*names)
           accessors = Module.new do
-            extend Forwardable # DISCUSS: do we really need Forwardable here?
+            extend Forwardable
+
             names.each do |name|
-              delegate [name, "#{name}="] => :_attributes
+              delegate [name, "#{name}="] => :_atts
             end
           end
           include accessors
@@ -23,44 +27,134 @@ class Wedge
 
       extend Delegates
 
-      class Attributes
-        def set_values(atts)
-          @_attributes = []
+      class Atts
+        attr_accessor :atts
+        attr_reader :options, :accessors, :form
 
-          atts.each do |key, val|
-            if respond_to?("#{key}=")
-              send(:"#{key}=", val)
-              @_attributes << key
+        def initialize atts, accessors, options, form
+          @atts      = atts.kind_of?(Hash) ? HashObject.new(atts) : atts
+          @form      = form
+          @accessors = accessors
+          @options   = options
+
+          set_atts
+          set_accessors
+          set_defaults
+
+          self
+        end
+
+        def set_atts
+          atts_hash = {}
+
+          accessors.each do |att|
+            atts_hash[att] = atts.respond_to?(att) ? atts.send(att) : nil
+          end
+
+          @atts = HashObject.new atts_hash
+        end
+
+        def set_accessors
+          accessors.each do |att|
+            att_options = options[att]
+
+            define_singleton_method att do
+              atts.send att
+            end
+
+            define_singleton_method "#{att}=" do |val, override = false|
+              if !att_options[:read_only] || (att_options[:read_only] && override)
+                atts.send("#{att}=", process_value(val, att_options))
+              end
             end
           end
         end
 
-        def set_attr_accessors attrs
-          attrs.each do |attr|
-            define_singleton_method "#{attr}=" do |value|
-              value = value.to_obj if value.is_a? Hash
-              instance_variable_set(:"@#{attr}", value)
-              @_attributes ||= []
-              @_attributes << attr
-            end
+        def set_defaults
+          accessors.each do |att|
+            att_options = options[att].deep_dup
+            default     = att_options[:default]
+            default     = self.instance_exec(&default) if default.kind_of? Proc
+            default     = form.send("default_#{att}") if form.respond_to? "default_#{att}"
 
-            define_singleton_method attr do
-              instance_variable_get(:"@#{attr}")
+            if form = att_options.delete(:form)
+              send("#{att}=", Wedge[
+                # name
+                "#{form}_form",
+                # attributes
+                (atts.respond_to?(att) ? (atts.send(att) || {}) : {}),
+                # options
+                att_options
+              ])
+            elsif default
+              send("#{att}=", default, true)
             end
           end
         end
 
-        def _attributes
-          @_attributes ||= []
+        def process_value val, opts
+          # Make sure the value is the correct type
+          if type = opts[:type]
+            val = case type
+            when 'Integer'
+              val.to_i
+            when 'String'
+              val.to_s
+            when 'Symbol'
+              val.to_sym
+            end
+          end
+
+          val
+        end
+      end
+
+      class << self
+        attr_accessor :_accessors, :_accessor_options
+
+        def attr_reader(*attrs)
+          default_opts = { read_only: true }
+          opts = attrs.pop
+          opts.merge!(default_opts) if opts.is_a? Hash
+
+          attrs << opts
+
+          attr_accessor(*attrs)
         end
 
-        def empty?
-          _attributes.empty?
+        def form_accessor name, options = {}
+          attr_accessor *[name, options.merge(form: name)]
+        end
+
+        def attr_accessor(*attrs)
+          attrs.each_with_index do |att, i|
+            if att.is_a? Hash
+              # remove the hash from the attrs, use them as options
+              options = attrs.delete_at i
+              # set the type class to aa string so it's not turned into an
+              # anonymous class
+              if type = options.delete(:type)
+                options[:type] = type.to_s
+              end
+              # merge and att them to the accessor options
+              attrs.each do |a|
+                ((@_accessor_options ||= IndifferentHash.new)[a] ||= {}).merge! options
+              end
+            else
+              # set empty options if need be
+              (@_accessor_options ||= IndifferentHash.new)[att] ||= {}
+              # store the accessors
+              (@_accessors ||= []) << att
+              define_method(att) { _atts.send att }
+            end
+          end
+
+          _delegates(*attrs)
         end
       end
 
       # Initialize with a hash of attributes and values.
-      # If extra attributes are sent, a NoMethodError exception will be raised.
+      # Extra attributes are discarded.
       #
       # @example
       #
@@ -89,354 +183,44 @@ class Wedge
       #   post = Post.new(edit.attributes)
       #   post.save
       def initialize(atts = {}, options = {})
-        @_data    = atts
-        @_data    = atts.to_obj if atts.is_a? Hash
-        @_options = options
+        @_atts = Atts.new atts, _accessors, _accessor_options, self
 
-        # @_attributes = Class.new(Attributes).new
-        @_attributes = Attributes.new
-        @_attributes.set_attr_accessors _attr_accessors
-        @_attributes.set_values _data
+        atts.each do |key, val|
+          next if _accessor_options[key][:form]
 
-        _data.each do |key, val|
-          send("#{key}=", val)
-        end
+          accessor = "#{key}="
 
-        _form.each do |key, form_name|
-          opts = {}
-          if _data.respond_to?(key)
-            opts[key] = wedge(form_name, _data.send(key))
+          if respond_to?(accessor)
+            send(accessor, val)
           end
-          @_attributes.set_values opts
-
-          send("#{key}=", opts[key])
         end
       end
 
-      def self.attr_accessor(*vars)
-        @_attr_accessors ||= []
-        @_form ||= {}
-
-        vars.each do |v|
-          if !v.is_a? Hash
-            @_attr_accessors << v unless @_attr_accessors.include? v
-          else
-            v = v.first
-
-            unless @_attr_accessors.include? v.first
-              @_attr_accessors << v.first
-              @_form[v.first] = v.last
-            end
-          end
-        end
-
-        _delegates(*_attr_accessors)
+      def _accessors
+        @_accessors ||= self.class._accessors.dup
       end
 
-      def method_missing method, *args, &block
-        # respond_to?(symbol, include_all=false)
-        if _data.respond_to? method, true
-          _data.send method, *args, &block
-        else
-          return if method[/\=\z/]
-
-          super
-        end
+      def _accessor_options
+        @_accessor_options ||= self.class._accessor_options.deep_dup
       end
 
       # Return hash of attributes and values.
       def attributes
-        Hash.new.tap do |atts|
-          _attributes.instance_variables.each do |ivar|
-            # todo: figure out why it's setting @constructor and @toString
-            next if ivar == :@constructor || ivar == :@toString || ivar == :@_attributes || ivar == :@_data || ivar == :@_forms
-
-            att = ivar[1..-1].to_sym
-            atts[att] = _attributes.send(att)
-
-            if form_name = _form[att.to_s.to_sym]
-              atts[att] = wedge(form_name, atts[att].respond_to?(:attributes)? atts[att].attributes : atts[att]).attributes
-            end
+        IndifferentHash.new.tap do |atts|
+          _accessors.each do |att|
+            is_form   = _accessor_options[att][:form]
+            atts[att] = is_form ? send(att).attributes : send(att)
           end
         end
-      end
-
-      def model_attributes data = attributes
-        hash = {}
-
-        data.each do |k, v|
-          if form_name = _form[k.to_s.to_sym]
-            d = data[k]
-            d = d.attributes if d.is_a?(Form)
-
-            f  = wedge(form_name, d)
-            k  = "#{k}_attributes"
-            dt = f.model_attributes
-
-            hash[k] = model_attributes dt
-          elsif v.is_a? Hash
-            hash[k] = model_attributes data[k]
-          else
-            hash[k] = v
-          end
-        end
-
-        hash
       end
 
       def slice(*keys)
-        Hash.new.tap do |atts|
+        IndifferentHash.new.tap do |atts|
           keys.each do |att|
             atts[att] = send(att)
-            # atts[att] = _attributes.send(att)
           end
-        end
-      end
-
-      def display_errors options = {}, &block
-        dom = options.delete(:dom) || _dom
-        d_errors = errors
-
-        if override_errors = options[:override_errors]
-          d_errors = override_errors
-        end
-
-        keys = options.delete(:keys) || (_options[:key] ? [_options[:key]] : [])
-
-        if extra_errors = options.delete(:errors)
-          extra_errors.each do |key, value|
-            d_errors[key] = value
-          end
-        end
-
-        d_errors.each do |key, error|
-          d_keys = (keys.dup << key)
-
-          error = error.first
-
-          if error.is_a?(Hash)
-            d_options = options.dup
-            d_options[:keys] = d_keys
-            d_options[:override_errors] = d_errors[key].first
-
-            display_errors d_options, &block
-          elsif !block_given? || block.call(d_keys, error) == false
-            name = d_keys.each_with_index.map do |field, i|
-              i != 0 ? "[#{field}]" : field
-            end.join
-
-            if tmpl = options[:tmpl]
-              if client?
-                field_error_dom = DOM.new(`#{tmpl.dom}[0].outerHTML`)
-              else
-                field_error_dom = DOM.new(tmpl.dom.to_html)
-              end
-            else
-              field_error_dom = DOM.new('<span class="field-error"><span>')
-            end
-
-            field_error_dom.html _error_name(key, error)
-
-            field = dom.find("[name='#{name}']")
-            field.before field_error_dom.dom
-          end
-        end
-      end
-      alias_method :render_errors, :display_errors
-
-      def render_values dom = false, key = false, data = false
-        dom = _options[:dom] unless dom
-        key = _options[:key] if !key && _options.key?(:key)
-
-        dom.find('input, select, textarea') do |element|
-          name  = element['name']
-          next if name.nil?
-          name  = name.gsub(/\A#{key}/, '') if key
-          keys  = name.gsub(/\A\[/, '').gsub(/[^a-z0-9_]/, '|').gsub(/\|\|/, '|').gsub(/\|$/, '').split('|')
-          value = false
-
-          keys.each do |k|
-            begin
-              value = value != false ? value.send(k) : send(k)
-            rescue
-              value = ''
-            end
-          end
-
-          case element.name
-          when 'select'
-            element.find('option') do |x|
-              x['selected'] = true if x['value'] == value.to_s
-            end
-          when 'input'
-            if %w(radio checkbox).include? element['type']
-              if element['value'] == value.to_s
-                element['checked'] = true
-              else
-                element.delete 'checked'
-              end
-            else
-              value = sprintf('%.2f', value) if value.is_a? BigDecimal
-              element['value'] = value.to_s
-            end
-          when 'textarea'
-            element.val value.to_s
-          end
-        end
-      end
-
-      def _attributes
-        @_attributes ||= {}
-      end
-
-      def validate_msg error, column
-        false
-      end
-
-      protected
-
-      def _data
-        @_data ||= {}
-      end
-
-      def self._attr_accessors
-        @_attr_accessors ||= []
-      end
-
-      def self._form
-        @_form || {}
-      end
-
-      def _form
-        self.class._form
-      end
-
-      def _attr_accessors
-        self.class._attr_accessors
-      end
-
-      def _options
-        @_options
-      end
-
-      def _dom
-        @_dom ||= @_options[:dom]
-      end
-
-      def _error_name key, error
-        validate_msg(error.to_sym, key.to_sym) || case error.to_s.to_sym
-        when :not_email
-          'Email Isn\'t Valid.'
-        when :not_present
-          'Required.'
-        when :not_equal
-          'Password does not match.'
-        else
-          !error[/\s/] ? error.to_s.gsub(/_/, ' ').titleize : error
-        end
-      end
-
-      def empty?
-        _attributes.empty?
-      end
-
-      def wedge_config
-        @wedge_config ||= begin
-          c = super
-          c.skip_method_wrap
-          c
-        end
-      end
-
-      module InstanceMethods
-        def render_fields data, options = {}
-          data = data.is_a?(Hash) ? data.to_obj : data
-
-          l_dom = options[:dom] || dom
-
-          l_dom.find("[data-if]") do |field_dom|
-            value = get_value_for field_dom['data-if'], data
-
-            unless value.present?
-              field_dom.remove
-            end
-          end
-
-          l_dom.find("[data-unless]") do |field_dom|
-            value = get_value_for field_dom['data-unless'], data
-
-            if value.present?
-              field_dom.remove
-            end
-          end
-
-          l_dom.find("[data-field]") do |field_dom|
-            if field = field_dom['data-field']
-              value = get_value_for field, data
-
-              if !value.nil?
-                value = value.to_s
-
-                if value != value.upcase && !value.match(Wedge::Plugins::Form::EMAIL)
-                  field_value = value.titleize
-                else
-                  field_value = value
-                end
-
-                field_value = 'No'  if field_value == 'False'
-                field_value = 'Yes' if field_value == 'True'
-
-                field_dom.html = field_value
-              else
-                field_dom.html = ''
-              end
-            end
-          end
-
-          l_dom
-        end
-
-        def get_value_for field, data
-          field = (field || '').split '.'
-
-          if field.length > 1
-            value = data.is_a?(Hash) ? data.to_obj : data
-
-            field.each_with_index do |f, i|
-              # might not have the parent object
-              if (value.respond_to?('empty?') ? value.empty? : !value.present?)
-                value = ''
-                next
-              end
-
-              if (i+1) < field.length
-                begin
-                  value = value.send(f)
-                rescue
-                  value = nil
-                end
-              else
-                begin
-                  value = value.respond_to?(:present) ? value.present("print_#{f}") : value.send(f)
-                rescue
-                  value = nil
-                end
-              end
-
-            end
-          else
-            begin
-              value = data.respond_to?(:present) ? data.present("print_#{field.first}") : data.send(field.first)
-            rescue
-              value = nil
-            end
-          end
-
-          value
         end
       end
     end
   end
 end
-
-Wedge::Form = Wedge::Plugins::Form

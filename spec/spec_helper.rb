@@ -19,6 +19,7 @@ else
   RSpec.configure do |c|
     c.extend RSpecHelpers
     c.filter_run_excluding :slow
+    c.color = true
   end
 
   require 'config/boot'
