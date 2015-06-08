@@ -50,25 +50,7 @@ class Wedge
       #          :date  => [:format] }
       #
       module Validations
-        def server? &block
-          RUBY_ENGINE == 'ruby'
-        end
-        alias :server :server?
-
-        def client?
-          RUBY_ENGINE == 'opal'
-        end
-        alias :client :client?
-
-        def self.server? &block
-          RUBY_ENGINE == 'ruby'
-        end
-        alias :server :server?
-
-        def self.client?
-          RUBY_ENGINE == 'opal'
-        end
-        alias :client :client?
+        include Methods
 
         # Check if the current model state is valid. Each call to {#valid?} will
         # reset the {#errors} array.
@@ -137,6 +119,7 @@ class Wedge
             att.each { |a| assert_present(a, error = [a, :not_present])}
           else
             att_options = _accessor_options[att].deep_dup
+
             if att_options.key? :form
               assert_form att, error
             else
@@ -260,8 +243,15 @@ class Wedge
         def assert(value, error)
           value or begin
             name   = error.shift.to_s
+            atts   = _accessor_options[name][:atts] || false
+            error  = atts ? error.first.select {|k, _| atts.include?(k) } : error
             errors = _errors[name]
-            (errors.is_a?(Array) ? errors.concat(error) : errors.merge!(error.first)) && false
+
+            if errors.is_a?(Array)
+              errors.concat(error) && false
+            else
+              errors.merge!(error.is_a?(Array) ? error.first : error) && false
+            end
           end
         end
       end

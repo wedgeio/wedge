@@ -32,6 +32,11 @@ class TestForm < Wedge::Plugins::Form
   end
 end
 
+class TestLimitForm < TestForm
+  name :test_limit_form
+  form_accessor :car, atts: %w'make model'
+end
+
 class CarForm < Wedge::Plugins::Form
   name :car_form
 
@@ -77,5 +82,17 @@ describe Wedge::Plugins::Form do
     }) }
 
     it { is_expected.not_to include phone_number: [:not_numeric] }
+  end
+
+  context 'limit form validation' do
+    subject { form = Wedge[:test_limit_form]; form.valid?; form.errors }
+
+    it { is_expected.to include({
+      :car => {
+        make: [:not_present], model: [:not_present]
+      }
+    })}
+
+    it { is_expected.not_to include vin: [:not_present] }
   end
 end

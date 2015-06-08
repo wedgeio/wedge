@@ -144,12 +144,20 @@ class Wedge
               # set empty options if need be
               (@_accessor_options ||= IndifferentHash.new)[att] ||= {}
               # store the accessors
-              (@_accessors ||= []) << att
+              ((@_accessors ||= []) << att).uniq!
               define_method(att) { _atts.send att }
             end
           end
 
           _delegates(*attrs)
+        end
+
+        # We need to set instance variables on the inherited class
+        def inherited(subclass)
+          return if name == 'Wedge::Plugins::Form'
+
+          subclass.instance_variable_set :@_accessors, @_accessors.deep_dup
+          subclass.instance_variable_set :@_accessor_options, @_accessor_options.deep_dup
         end
       end
 

@@ -99,9 +99,9 @@ class Wedge
       define_method "#{meth}!" do |value|
         klass = Class.new(self)
         ATTR_ACCESSORS.each do |name|
-          klass.instance_variable_set(:"@#{name}", Wedge.instance_variable_get(:"@#{name}"))
+          klass.instance_variable_set(:"@#{name}", Wedge.instance_variable_get(:"@#{name}").deep_dup)
         end
-        klass.instance_variable_set(:"@#{meth}", value)
+        klass.instance_variable_set(:"@#{meth}", value.deep_dup)
         klass
       end
     end
