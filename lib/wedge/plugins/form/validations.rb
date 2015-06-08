@@ -121,7 +121,7 @@ class Wedge
         # @param [Array<Symbol, Symbol>] error The error that should be returned
         #                                when the validation fails.
         def assert_format(att, format, error = [att, :format])
-          if assert_present(att, error)
+          if !send(att).to_s.empty?
             assert(_attributes.send(att).to_s.match(format), error)
           end
         end
@@ -137,13 +137,20 @@ class Wedge
             att.each { |a| assert_present(a, error = [a, :not_present])}
           else
             att_options = _accessor_options[att].deep_dup
-            if form_name = att_options.delete(:form)
-              f = wedge("#{form_name}_form", send(att).attributes, att_options)
-              assert(f.valid?, [att, f._errors])
+            if att_options.key? :form
+              assert_form att, error
             else
               assert(!send(att).to_s.empty?, error)
             end
           end
+        end
+
+        def assert_form(att, error = [att, :no_form])
+          att_options = _accessor_options[att].deep_dup
+          form_name   = att_options.delete :form
+
+          f = wedge("#{form_name}_form", send(att).attributes, att_options)
+          assert(f.valid?, [att, f._errors])
         end
 
         # Checks if all the characters of an attribute is a digit.
@@ -152,7 +159,11 @@ class Wedge
         # @param [Array<Symbol, Symbol>] error The error that should be returned
         #                                when the validation fails.
         def assert_numeric(att, error = [att, :not_numeric])
-          if assert_present(att, error)
+          # discuss: I commented this out as I don't think we should assume they
+          # want to validate presents if they validate for numeric. if they
+          # validate for numeric.
+          # if assert_present(att, error)
+          if !send(att).to_s.empty?
             if client?
               assert_format(att, /^\-?\d+$/, error)
             else
@@ -168,7 +179,7 @@ class Wedge
         end
 
         def assert_url(att, error = [att, :not_url])
-          if assert_present(att, error)
+          if !send(att).to_s.empty?
             assert_format(att, URL, error)
           end
         end
@@ -180,7 +191,7 @@ class Wedge
         end
 
         def assert_email(att, error = [att, :not_email])
-          if assert_present(att, error)
+          if !send(att).to_s.empty?
             assert_format(att, EMAIL, error)
           end
         end
@@ -190,7 +201,7 @@ class Wedge
         end
 
         def assert_length(att, range, error = [att, :not_in_range])
-          if assert_present(att, error)
+          if !send(att).to_s.empty?
             val = _attributes.send(att).to_s
             assert range.include?(val.length), error
           end

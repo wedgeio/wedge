@@ -14,8 +14,9 @@ class TestForm < Wedge::Plugins::Form
   form_accessor :car
 
   def validate
-    assert_present %w'first_name last_name car'
+    assert_present %w'first_name last_name'
     assert_numeric :phone_number
+    assert_form :car
   end
 
   def full_name
@@ -71,10 +72,10 @@ describe Wedge::Plugins::Form do
     it { is_expected.to include({
       first_name: [:not_present], last_name: [:not_present],
       :car => {
-        make: [:not_present], model: [:not_present], vin: [:not_present, :not_in_range]
+        make: [:not_present], model: [:not_present], vin: [:not_present]
       }
     }) }
 
-    it { is_expected.not_to include phone_number: :not_numeric }
+    it { is_expected.not_to include phone_number: [:not_numeric] }
   end
 end
