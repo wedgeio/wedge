@@ -43,14 +43,8 @@ describe Wedge::Plugins::CurrentUser do
       expect(test_comp.display).to eq 'admin'
     end
 
-    if Wedge.server?
-      it 'expects secret_key' do
-        expect(current_user.secret_key).to eq 123456
-      end
-    else
-      it 'expects NO secret_key' do
-        expect(current_user.secret_key).to eq nil
-      end
+    it 'secret_key' do
+      expect(current_user.secret_key).to eq(Wedge.server?? 123456 : nil)
     end
   end
 end
