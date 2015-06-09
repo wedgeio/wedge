@@ -21,9 +21,7 @@ describe Wedge::Plugins::Uploader do
       if Wedge.server?
         expect(settings.keys).to include *%w'aws_access_key_id aws_secret_access_key bucket'
       else
-        # settings are nil client side as the class on :compile would need to be
-        # ran server side first.
-        # expect(settings).to be_nil
+        expect(settings.keys).not_to include *%w'aws_secret_access_key'
       end
     end
   end

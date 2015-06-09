@@ -16,6 +16,7 @@ class Wedge
         path: nil,
         html: nil,
         scope: nil,
+        block: nil,
         debug: false,
         app_dir: 'app',
         assets_url: '/assets/wedge',
@@ -41,17 +42,25 @@ class Wedge
       @data.dup.select {|k, v| allowed_client_data.include? k }
     end
 
-    def plugin(name)
+    def plugin(name, settings = {}, &block)
       unless RUBY_ENGINE == 'opal'
         require "wedge/plugins/#{name}"
       end
 
       klass = Wedge.config.component_class[:"#{name}_plugin"]
-      plugins << klass.config.path unless plugins.include? klass.config.path
 
-      # Merge in instance/class methods
-      Wedge::Component.send(:include, klass::InstanceMethods) if defined?(klass::InstanceMethods)
-      Wedge::Component.extend(klass::ClassMethods) if defined?(klass::ClassMethods)
+      unless plugins.include? klass.config.path
+        klass.config.settings  = settings
+        klass.config.block     = block
+        klass.config.is_plugin = true
+
+        plugins << klass.config.path
+        plugins.uniq!
+
+        # Merge in instance/class methods
+        Wedge::Component.send(:include, klass::InstanceMethods) if defined?(klass::InstanceMethods)
+        Wedge::Component.extend(klass::ClassMethods) if defined?(klass::ClassMethods)
+      end
     end
 
     def method_missing(method, *args, &block)

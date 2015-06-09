@@ -1,5 +1,4 @@
 require_relative 'form/validations'
-require 'forwardable'
 
 class Wedge
   module Plugins
@@ -205,11 +204,11 @@ class Wedge
       end
 
       def _accessors
-        @_accessors ||= self.class._accessors.dup
+        @_accessors ||= (self.class._accessors || IndifferentHash.new).deep_dup
       end
 
       def _accessor_options
-        @_accessor_options ||= self.class._accessor_options.deep_dup
+        @_accessor_options ||= (self.class._accessor_options || IndifferentHash.new).deep_dup
       end
 
       # Return hash of attributes and values.

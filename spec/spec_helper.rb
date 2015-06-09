@@ -4,6 +4,7 @@ if RUBY_ENGINE == 'opal'
   require 'opal/rspec'
   require 'opal/jquery/rspec'
 else
+  require 'rspec'
 
   ENV['RACK_ENV'] ||= 'test'
 
@@ -23,4 +24,6 @@ else
   end
 
   require 'config/boot'
+
+  Dir["./spec/stubs/**/*.rb"].sort.each { |file| require file }
 end

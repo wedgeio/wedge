@@ -17,3 +17,6 @@ require 'app'
 
 Dir["#{APP_ROOT}/forms/*.rb"].sort.each { |file| require file }
 Dir["#{APP_ROOT}/components/*.rb"].sort.each { |file| require file }
+Dir["#{APP_ROOT}/models/*.rb"].sort.each { |file| require file }
+
+require './spec/spec_helper' if RACK_ENV == 'test'

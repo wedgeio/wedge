@@ -1,6 +1,10 @@
 $:.unshift(File.expand_path('./lib'))
 $:.unshift(File.expand_path("./playground/app"))
 
+current_task = Rake.application.top_level_tasks.first
+
+ENV['RACK_ENV'] ||= (current_task['default'] || current_task[/rspec\z/]) ? 'test' : 'development'
+
 require 'bundler'
 require 'bundler/gem_tasks'
 require 'bundler/setup'

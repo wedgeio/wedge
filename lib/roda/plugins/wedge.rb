@@ -29,6 +29,12 @@ class Roda
         ::Wedge.javascript if opts[:cache_assets]
       end
 
+      module ClassMethods
+        def wedge_plugin name, settings = {}, &block
+          ::Wedge.plugin name, settings, &block
+        end
+      end
+
       module InstanceMethods
         def wedge(name, *args, &block)
           ::Wedge.scope!(self)[name, *args, &block]

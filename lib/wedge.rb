@@ -8,6 +8,7 @@ require 'wedge/utilis/try'
 require 'wedge/utilis/titleize'
 require 'wedge/utilis/element'
 require 'base64'
+require 'forwardable'
 unless RUBY_ENGINE == 'opal'
   require 'nokogiri'
   require 'wedge/utilis/nokogiri'
@@ -23,9 +24,13 @@ class Wedge
   include Methods
 
   class << self
+    extend Forwardable
+
     ATTR_ACCESSORS = %i{scope store config events}
 
     attr_accessor(*ATTR_ACCESSORS)
+
+    delegate [:plugin] => :config
 
     def assets_url
       url = config.assets_url.gsub(%r{^(http(|s)://[^\/]*\/|\/)}, '/')

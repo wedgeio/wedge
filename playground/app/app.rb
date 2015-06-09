@@ -15,7 +15,7 @@ class Playground
 
   plugin :wedge, {
     scope: self,
-    plugins: [:form],
+    plugins: [:form, :ability_list],
     settings: {
       uploader: {
         aws_access_key_id: AWS_ACCESS_KEY_ID,
@@ -24,6 +24,10 @@ class Playground
       }
     }
   }
+
+  wedge_plugin(:current_user, client_fields: %w'id first_name last_name is_admin') do
+    User.find(1)
+  end
 
   # builder = Opal::Builder.new(:stubs=>['opal'])
   # builder.append_paths(APP_ROOT)
