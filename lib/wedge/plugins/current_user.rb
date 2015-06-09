@@ -5,18 +5,17 @@ class Wedge
 
       name :current_user_plugin
 
-      def initialize atts = {}, options = {}
-          binding.pry
-        if store[:user]
-          super store[:user], options
-        end
-      end
-
       on :compile do |for_client|
         obj           = instance_exec(&config.block)
         client_fields = config.settings[:client_fields]
         store[:user]  = obj.select do |k, v|
           for_client ? (client_fields ||= []).include?(k.to_s) : true
+        end
+      end
+
+      module ClassMethods
+        def current_user
+          Wedge[:current_user]
         end
       end
 

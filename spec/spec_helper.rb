@@ -21,6 +21,15 @@ else
     c.extend RSpecHelpers
     c.filter_run_excluding :slow
     c.color = true
+    # c.before do
+    #   allow(Playground::User).to receive(:find) do |id|
+    #     if id == 1
+    #       {id: 1, first_name: 'Test', last_name: 'Admin', is_admin: true}
+    #     else
+    #       nil
+    #     end
+    #   end
+    # end
   end
 
   require 'config/boot'

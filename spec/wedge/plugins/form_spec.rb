@@ -1,4 +1,6 @@
 require 'spec_helper'
+require 'components/abilities'
+require 'components/current_user'
 require 'wedge/plugins/form'
 
 class TestForm < Wedge::Plugins::Form
@@ -10,6 +12,9 @@ class TestForm < Wedge::Plugins::Form
 
   attr_accessor :first_name, :last_name
   attr_accessor :phone_number, type: Integer
+  attr_accessor :user_only, default: true do
+    !current_user.admin?
+  end
 
   form_accessor :car
 
@@ -94,5 +99,11 @@ describe Wedge::Plugins::Form do
     })}
 
     it { is_expected.not_to include vin: [:not_present] }
+  end
+
+  context 'block#current_user' do
+    it 'should not have access to user_only' do
+      expect { test_form.user_only }.to raise_error(NoMethodError)
+    end
   end
 end

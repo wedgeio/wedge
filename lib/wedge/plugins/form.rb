@@ -111,21 +111,23 @@ class Wedge
       class << self
         attr_accessor :_accessors, :_accessor_options
 
-        def attr_reader(*attrs)
+        def attr_reader(*attrs, &block)
           default_opts = { read_only: true }
           opts = attrs.pop
           opts.merge!(default_opts) if opts.is_a? Hash
 
           attrs << opts
 
-          attr_accessor(*attrs)
+          attr_accessor(*attrs, &block)
         end
 
         def form_accessor name, options = {}
           attr_accessor *[name, options.merge(form: name)]
         end
 
-        def attr_accessor(*attrs)
+        def attr_accessor(*attrs, &block)
+          return unless instance_eval &block if block_given?
+
           attrs.each_with_index do |att, i|
             if att.is_a? Hash
               # remove the hash from the attrs, use them as options

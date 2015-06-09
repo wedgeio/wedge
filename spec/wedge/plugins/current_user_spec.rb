@@ -1,26 +1,7 @@
 require 'spec_helper'
+require 'components/abilities'
+require 'components/current_user'
 require 'wedge/plugins/current_user'
-
-class TestAbilities < Wedge::Plugins::AbilityList
-  name :ability_list
-
-  def initialize user
-    if user.admin?
-      can :view, :admin
-    end
-  end
-end
-
-class CurrentUser < Wedge::Plugins::CurrentUser
-  name :current_user
-
-  attr_reader :id, :is_admin, :secret_key
-  attr_accessor :first_name, :last_name
-
-  def admin?
-    is_admin
-  end
-end
 
 class TestComponent < Wedge::Component
   name :test
