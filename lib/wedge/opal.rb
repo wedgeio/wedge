@@ -37,12 +37,17 @@ unless RUBY_ENGINE == 'opal'
             comp_class.config.on_compile.each { |blk| comp_class.instance_exec(true, &blk) }
             comp_name     = comp_class.config.name
             compiled_data = Base64.encode64 comp_class.config.client_data.to_json
+            js            = ''
 
-            js = "require '#{self.file}'; Wedge.config.component_class[:#{comp_name}].config.data = HashObject.new(Wedge.config.component_class[:#{comp_name}].config.data.to_h.merge JSON.parse(Base64.decode64('#{compiled_data}')))"
+            js << "require '#{self.file}'; Wedge.config.component_class[:#{comp_name}].config.data = HashObject.new(Wedge.config.component_class[:#{comp_name}].config.data.to_h.merge JSON.parse(Base64.decode64('#{compiled_data}')))"
             # todo: discuss: pass plugin settings that were set server side?
             js << "; Wedge.plugin(:#{comp_name.to_s.gsub(/_plugin$/, '')})" if comp_class.config.is_plugin
 
             @result << Opal.original_compile(js)
+
+            if compile_str = comp_class.config.compile_str
+              @result << compile_str
+            end
 
             load_requires logical_path
           end

@@ -11,6 +11,17 @@ class Wedge
         store[:user]  = obj.select do |k, v|
           for_client ? (client_fields ||= []).include?(k.to_s) : true
         end
+
+        if for_client
+          config.compile_str = ''
+
+          # todo: raise error meaningful error if either of these files don't exist
+          %w'ability_list current_user'.each do |type|
+            path = Wedge.config.component_class[:"#{type}"].config.path
+            code = File.read("#{Dir.pwd}/#{Wedge.config.app_dir}/#{path}.rb")
+            config.compile_str << Opal.original_compile("require 'wedge/plugins/#{type}'; #{code}")
+          end
+        end
       end
 
       module ClassMethods

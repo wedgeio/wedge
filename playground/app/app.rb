@@ -16,6 +16,7 @@ class Playground
   plugin :wedge, {
     scope: self,
     plugins: [:form, :ability_list],
+    app_dir: RACK_ENV != 'test' ? 'app' : 'playground/app',
     settings: {
       uploader: {
         aws_access_key_id: AWS_ACCESS_KEY_ID,

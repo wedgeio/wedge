@@ -1,6 +1,4 @@
 require 'spec_helper'
-require 'components/abilities'
-require 'components/current_user'
 require 'wedge/plugins/current_user'
 
 class TestComponent < Wedge::Component

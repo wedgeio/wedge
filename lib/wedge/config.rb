@@ -23,6 +23,7 @@ class Wedge
         assets_key: nil,
         cache_assets: false,
         is_plugin: false,
+        compile_str: false,
         requires: IndifferentHash.new,
         triggered_browser_events: false,
         store: IndifferentHash.new,
@@ -43,11 +44,15 @@ class Wedge
     end
 
     def plugin(name, settings = {}, &block)
+      plugin_name = "#{name}_plugin"
+
+      Wedge.config.settings[plugin_name] = settings
+
       unless RUBY_ENGINE == 'opal'
         require "wedge/plugins/#{name}"
       end
 
-      klass = Wedge.config.component_class[:"#{name}_plugin"]
+      klass = Wedge.config.component_class[plugin_name]
 
       unless plugins.include? klass.config.path
         klass.config.settings  = settings
