@@ -15,7 +15,7 @@ class Wedge
         if for_client
           config.compile_str = ''
 
-          # todo: raise error meaningful error if either of these files don't exist
+          # todo: raise meaningful error if either of these files don't exist
           %w'ability_list current_user'.each do |type|
             path = Wedge.config.component_class[:"#{type}"].config.path
             code = File.read("#{Dir.pwd}/#{Wedge.config.app_dir}/#{path}.rb")
