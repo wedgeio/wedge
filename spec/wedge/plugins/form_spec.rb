@@ -58,7 +58,7 @@ end
 
 describe Wedge::Plugins::Form do
   let(:params) {{
-    first_name: 'CJ', last_name: 'Lazell', phone_number: '(555) 555 - 5555',
+    id: 5, first_name: 'CJ', last_name: 'Lazell', phone_number: '(555) 555 - 5555',
     car: {
       make: 'ford', model: 'focus', vin: '12121212121212121'
     }
@@ -68,6 +68,9 @@ describe Wedge::Plugins::Form do
   context 'attributes' do
     subject(:attributes) { test_form.attributes }
 
+    # id is 1 because values that are attr_readers can't be set via passed in
+    # params, this stops people updating values they shouldn't and is why you
+    # should always use a form to filter param data before passing it to a model.
     it { is_expected.to include({
       id: 1, first_name: 'CJ', last_name: 'Lazell', phone_number: 5555555555, zipcode: 55555
     })}
