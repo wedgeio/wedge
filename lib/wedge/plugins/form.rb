@@ -1,14 +1,16 @@
 require_relative 'form/validations'
+require_relative 'render'
 
 class Wedge
   module Plugins
     class Form < Component
       name :form_plugin
 
-      attr_reader :_atts
+      attr_reader :_atts, :_options
 
       include Methods
       include Validations
+      include Render
 
       # This allows us to call super
       module Delegates
@@ -192,7 +194,8 @@ class Wedge
       #   post = Post.new(edit.attributes)
       #   post.save
       def initialize(atts = {}, options = {})
-        @_atts = Atts.new atts, _accessors, _accessor_options, self
+        @_options = options
+        @_atts    = Atts.new atts, _accessors, _accessor_options, self
 
         atts.each do |key, val|
           next if _accessor_options[key][:form]
