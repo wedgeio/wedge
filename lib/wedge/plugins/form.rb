@@ -217,13 +217,17 @@ class Wedge
       end
 
       # Return hash of attributes and values.
-      def attributes
+      def attributes for_model = false
         IndifferentHash.new.tap do |atts|
           _accessors.each do |att|
             is_form   = _accessor_options[att][:form]
-            atts[att] = is_form ? send(att).attributes : send(att)
+            atts[for_model ? "#{att}_attributes" : att] = is_form ? send(att).attributes : send(att)
           end
         end
+      end
+
+      def model_attributes
+        attributes true
       end
 
       def slice(*keys)
