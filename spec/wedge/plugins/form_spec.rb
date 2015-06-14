@@ -10,9 +10,8 @@ class TestForm < Wedge::Plugins::Form
 
   attr_accessor :first_name, :last_name
   attr_accessor :phone_number, type: Integer
-  attr_accessor :user_only, default: true do
-    !current_user.admin?
-  end
+  #  private is causing issue with opal, change to if and unless
+  attr_accessor :user_only, default: true, unless: -> { current_user.admin? }
 
   form_accessor :car
 
@@ -75,6 +74,7 @@ describe Wedge::Plugins::Form do
       id: 1, first_name: 'CJ', last_name: 'Lazell', phone_number: 5555555555, zipcode: 55555
     })}
     it { is_expected.not_to have_key :full_name }
+    it { is_expected.not_to have_key :full_name }
   end
 
   context 'validation errors' do
@@ -104,7 +104,7 @@ describe Wedge::Plugins::Form do
 
   context 'block#current_user' do
     it 'should not have access to user_only' do
-      expect { test_form.user_only }.to raise_error(NoMethodError)
+      expect(test_form.user_only).to be_nil
     end
   end
 end

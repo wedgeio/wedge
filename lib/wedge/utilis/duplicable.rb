@@ -26,6 +26,15 @@ class Object
   end
 end
 
+# fix: this is a current hack, as of opal 0.8 you can't #dup/#clone procs
+if RUBY_ENGINE == 'opal'
+  class Proc
+    def duplicable?
+      false
+    end
+  end
+end
+
 class NilClass
   # +nil+ is not duplicable:
   #
@@ -75,6 +84,8 @@ class Numeric
     false
   end
 end
+
+defined?(::BigDecimal) or require 'bigdecimal' unless  RUBY_ENGINE == 'opal'
 
 class BigDecimal
   def duplicable?

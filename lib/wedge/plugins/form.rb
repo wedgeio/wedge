@@ -29,18 +29,16 @@ class Wedge
       extend Delegates
 
       class Atts
-        attr_accessor :atts
-        attr_reader :options, :accessors, :form
+        attr_accessor :_atts, :_form
+        attr_reader :_options, :_accessors
 
-        def initialize atts, accessors, options, form
-          @atts      = atts.kind_of?(Hash) ? HashObject.new(atts) : atts
-          @form      = form
-          @accessors = accessors
-          @options   = options
+        def initialize atts, accessors, options
+          @_atts      = atts.kind_of?(Hash) ? HashObject.new(atts) : atts
+          @_accessors = accessors
+          @_options   = options
 
           set_atts
           set_accessors
-          set_defaults
 
           self
         end
@@ -48,42 +46,60 @@ class Wedge
         def set_atts
           atts_hash = {}
 
-          accessors.each do |att|
-            atts_hash[att] = atts.respond_to?(att) ? atts.send(att) : nil
+          _accessors.each do |att|
+            atts_hash[att] = _atts.respond_to?(att) ? _atts.send(att) : nil
           end
 
-          @atts = HashObject.new atts_hash
+          @_atts = HashObject.new atts_hash
         end
 
         def set_accessors
-          accessors.each do |att|
-            att_options = options[att]
+          _accessors.each do |att|
+            att_options = _options[att]
 
             define_singleton_method att do
-              atts.send att
+              _atts.send(att) if can_read?(att)
             end
 
             define_singleton_method "#{att}=" do |val, override = false|
-              if !att_options[:read_only] || (att_options[:read_only] && override)
-                atts.send("#{att}=", process_value(val, att_options))
+              if can_write?(att, override)
+                _atts.send("#{att}=", process_value(val, att_options))
               end
             end
           end
         end
 
-        def set_defaults
-          accessors.each do |att|
-            att_options = options[att].deep_dup
+        def can_read? att
+          att_options = _options[att]
+
+          return true if !att_options[:if] && !att_options[:unless]
+          return true if att_options[:if] && _form.instance_exec(&att_options[:if])
+          return true if att_options[:unless] && !_form.instance_exec(&att_options[:unless])
+
+          false
+        end
+
+        def can_write? att, override = false
+          att_options = _options[att]
+
+          override || (can_read?(att) && (!att_options[:read_only]))
+        end
+
+        def set_defaults _form = self
+          @_form = _form
+
+          _accessors.each do |att|
+            att_options = _options[att].deep_dup
             default     = att_options[:default]
-            default     = self.instance_exec(&default) if default.kind_of? Proc
-            default     = form.send("default_#{att}") if form.respond_to? "default_#{att}"
+            default     = _form.instance_exec(&default) if default.kind_of? Proc
+            default     = _form.send("default_#{att}") if _form.respond_to? "default_#{att}"
 
             if form = att_options.delete(:form)
               send("#{att}=", Wedge[
                 # name
                 "#{form}_form",
                 # attributes
-                (atts.respond_to?(att) ? (atts.send(att) || {}) : {}),
+                (_atts.respond_to?(att) ? (_atts.send(att) || {}) : {}),
                 # options
                 att_options
               ])
@@ -91,6 +107,8 @@ class Wedge
               send("#{att}=", default, true)
             end
           end
+
+          self
         end
 
         def process_value val, opts
@@ -124,12 +142,10 @@ class Wedge
         end
 
         def form_accessor name, options = {}
-          attr_accessor *[name, options.merge(form: name)]
+          attr_accessor *[name, { form: name }.merge(options)]
         end
 
         def attr_accessor(*attrs, &block)
-          return unless instance_eval &block if block_given?
-
           attrs.each_with_index do |att, i|
             if att.is_a? Hash
               # remove the hash from the attrs, use them as options
@@ -195,7 +211,8 @@ class Wedge
       #   post.save
       def initialize(atts = {}, options = {})
         @_options = options
-        @_atts    = Atts.new atts, _accessors, _accessor_options, self
+        @_atts    = Atts.new atts, _accessors, _accessor_options
+        @_atts    = @_atts.set_defaults self
 
         atts.each do |key, val|
           next if _accessor_options[key][:form]
@@ -220,14 +237,21 @@ class Wedge
       def attributes for_model = false
         IndifferentHash.new.tap do |atts|
           _accessors.each do |att|
-            is_form   = _accessor_options[att][:form]
-            atts[for_model ? "#{att}_attributes" : att] = is_form ? send(att).attributes : send(att)
+            if _atts.can_read?(att)
+              is_form   = _accessor_options[att][:form]
+              key       = (for_model && is_form)? "#{att}_attributes" : att
+              atts[key] = is_form ? send(att).send(for_model ? 'model_attributes' : 'attributes') : send(att)
+            end
           end
         end
       end
 
       def model_attributes
         attributes true
+      end
+
+      def atts
+        _atts._atts
       end
 
       def slice(*keys)
