@@ -50,5 +50,5 @@ else
     }
   )
 
-  Wedge[:factory].stub :user, user, location: [:address]
+  Wedge[:factory].stub user, :user, location: [:address]
 end
