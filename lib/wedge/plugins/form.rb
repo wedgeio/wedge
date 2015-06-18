@@ -238,7 +238,7 @@ class Wedge
         IndifferentHash.new.tap do |atts|
           _accessors.each do |att|
             opts = _accessor_options[att]
-            if _atts.can_read?(att) && !opts[:hidden]
+            if _atts.can_read?(att) && (!opts[:hidden] || opts[:hidden].is_a?(Proc) && self.instance_exec(&opts[:hidden]))
               is_form   = opts[:form]
               key       = (for_model && is_form)? "#{att}_attributes" : att
               atts[key] = is_form ? send(att).send(for_model ? 'model_attributes' : 'attributes') : send(att)

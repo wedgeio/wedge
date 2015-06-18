@@ -240,6 +240,11 @@ class Wedge
     end
     alias_method :store, :wedge_store
 
+    def wedge_class_store
+      self.class.wedge_config.store
+    end
+    alias_method :class_store, :wedge_class_store
+
     # Duplicate of class condig [Config]
     # @return config [Config]
     def wedge_config

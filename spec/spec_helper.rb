@@ -35,4 +35,20 @@ else
   require 'config/boot'
 
   Dir["./spec/stubs/**/*.rb"].sort.each { |file| require file }
+
+  Wedge.plugin(:factory)
+  user = HashObject.new(
+    first_name: 'moo',
+    last_name: 'cow',
+    location: {
+      address: HashObject.new(
+        line1: 'The fields',
+        city: 'milkton',
+        state: 'texas',
+        zip: 40004
+      )
+    }
+  )
+
+  Wedge[:factory].stub :user, user, location: [:address]
 end
