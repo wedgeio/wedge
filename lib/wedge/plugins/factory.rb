@@ -25,8 +25,8 @@ class Wedge
         parsed_data = JSON.parse data.to_json
 
         keys.each do |k, v|
-          d = data.respond_to?(k) ? data.send(k) : data[k]
-          parsed_data[k] = parse d, keys[v]
+          d = data.kind_of?(Hash) ? data[k] : data.send(k)
+          parsed_data[k] = parse d, v
         end if keys
 
         parsed_data
