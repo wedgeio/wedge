@@ -79,6 +79,11 @@ class Wedge
         def validate
         end
 
+        def error key, value
+          value = [value] unless value.is_a? Array
+          _errors[key] = value
+        end
+
         def errors
           IndifferentHash.new(_errors)
         end
@@ -252,6 +257,8 @@ class Wedge
             else
               errors.merge!(error.is_a?(Array) ? error.first : error) && false
             end
+
+            false
           end
         end
       end

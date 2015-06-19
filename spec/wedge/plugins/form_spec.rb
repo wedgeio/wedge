@@ -13,6 +13,8 @@ class TestForm < Wedge::Plugins::Form
   attr_accessor :user_only, default: true, unless: -> { current_user.admin? }
   attr_accessor :email, hidden: true
 
+  model_alias :phone_num, :phone_number
+
   form_accessor :car
 
   def validate
@@ -75,6 +77,13 @@ describe Wedge::Plugins::Form do
     })}
     it { is_expected.not_to have_key :full_name }
     it { is_expected.not_to have_key :email }
+  end
+
+  context 'model_attributes' do
+    subject(:attributes) { test_form.model_attributes }
+
+    it { is_expected.not_to have_key :phone_number }
+    it { is_expected.to have_key :phone_num }
   end
 
   context 'validation errors' do

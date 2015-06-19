@@ -129,7 +129,7 @@ class Wedge
       end
 
       class << self
-        attr_accessor :_accessors, :_accessor_options
+        attr_accessor :_accessors, :_accessor_options, :_aliases
 
         def attr_reader(*attrs, &block)
           default_opts = { read_only: true }
@@ -178,6 +178,12 @@ class Wedge
           subclass.instance_variable_set :@_accessors, @_accessors.deep_dup
           subclass.instance_variable_set :@_accessor_options, @_accessor_options.deep_dup
         end
+
+        def model_alias alias_name, original_name
+          @_aliases ||= IndifferentHash.new
+          @_aliases[original_name] = alias_name
+        end
+        alias alias_model model_alias
       end
 
       # Initialize with a hash of attributes and values.
@@ -233,6 +239,10 @@ class Wedge
         @_accessor_options ||= (self.class._accessor_options || IndifferentHash.new).deep_dup
       end
 
+      def _aliases
+        @_aliases || (self.class._aliases || IndifferentHash.new).deep_dup
+      end
+
       # Return hash of attributes and values.
       def attributes for_model = false
         IndifferentHash.new.tap do |atts|
@@ -240,7 +250,8 @@ class Wedge
             opts = _accessor_options[att]
             if _atts.can_read?(att) && (!opts[:hidden] || opts[:hidden].is_a?(Proc) && self.instance_exec(&opts[:hidden]))
               is_form   = opts[:form]
-              key       = (for_model && is_form)? "#{att}_attributes" : att
+              key       = for_model ? _aliases[att] : att
+              key       = (for_model && is_form)? "#{key}_attributes" : key
               atts[key] = is_form ? send(att).send(for_model ? 'model_attributes' : 'attributes') : send(att)
             end
           end
