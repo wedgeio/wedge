@@ -30,11 +30,12 @@ class Wedge
 
       class Atts
         attr_accessor :_atts, :_form
-        attr_reader :_options, :_accessors
+        attr_reader :_options, :_accessors, :_aliases
 
-        def initialize atts, accessors, options
+        def initialize atts, accessors, aliases, options
           @_atts      = atts.kind_of?(Hash) ? HashObject.new(atts) : atts
           @_accessors = accessors
+          @_aliases   = aliases
           @_options   = options
 
           set_atts
@@ -56,6 +57,7 @@ class Wedge
         def set_accessors
           _accessors.each do |att|
             att_options = _options[att]
+            alias_att   = _aliases[att]
 
             define_singleton_method att do
               _atts.send(att) if can_read?(att)
@@ -65,6 +67,11 @@ class Wedge
               if can_write?(att, override)
                 _atts.send("#{att}=", process_value(val, att_options))
               end
+            end
+
+            if alias_att
+              define_singleton_method(alias_att) { send(att) }
+              define_singleton_method("#{alias_att}=") { |val, override = false| send("#{att}=", val, override) }
             end
           end
         end
@@ -217,10 +224,13 @@ class Wedge
       #   post.save
       def initialize(atts = {}, options = {})
         @_options = options
-        @_atts    = Atts.new atts, _accessors, _accessor_options
+        @_atts    = Atts.new atts, _accessors, _aliases, _accessor_options
         @_atts    = @_atts.set_defaults self
 
         atts.each do |key, val|
+          # grab the original key if alias is given
+          key = _aliases.invert[key] || key
+
           next if _accessor_options[key][:form]
 
           accessor = "#{key}="

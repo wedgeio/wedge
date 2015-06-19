@@ -59,7 +59,7 @@ end
 
 describe Wedge::Plugins::Form do
   let(:params) {{
-    id: 5, first_name: 'CJ', last_name: 'Lazell', phone_number: '(555) 555 - 5555',
+    id: 5, first_name: 'CJ', last_name: 'Lazell', phone_num: '(555) 555 - 5555',
     car: {
       make: 'ford', model: 'focus', vin: '12121212121212121'
     }
