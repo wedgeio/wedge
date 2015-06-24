@@ -1,24 +1,29 @@
 class Wedge
   class Middleware
     def initialize(app, settings = {})
-      @app = app
+      @app  = app
+      @opal = Wedge::Opal::Server.new { |s|
+        s.prefix = Wedge.config.assets_url
+        s.append_path "#{Dir.pwd}/#{Wedge.config.app_dir}"
+        s.debug = Wedge.config.debug
+      }
 
-      # Add settings to wedge
       settings.each do |k, v|
         Wedge.config.send "#{k}=", v
       end
     end
 
     def call(env)
-      responder = Responder.new(@app, env)
+      responder = Responder.new(@app, @opal, env)
       responder.respond
     end
 
     class Responder
+      attr_reader :opal
       attr_accessor :app, :env, :wedge_path, :extension
 
-      def initialize(app, env)
-        @app = app; @env = env
+      def initialize(app, opal, env)
+        @app = app; @opal = opal; @env = env
       end
 
       def respond
@@ -26,17 +31,7 @@ class Wedge
           @wedge_path, @extension = $1, $2
           body, headers, status = [], {}, 200
 
-          case extension
-          when 'map'
-            body << ::Wedge.source_map(wedge_path)
-          when 'rb'
-            if wedge_path =~ /^wedge/
-              path = ::Wedge.config.path.gsub(/\/wedge.rb$/, '')
-              body << File.read("#{path}/#{wedge_path}.rb")
-            else
-              body << File.read("#{ROOT_PATH}/#{wedge_path}.rb")
-            end if Wedge.config.debug
-          when 'call'
+          if extension == 'call'
             body_data = request.body.read
             data      = request.params
 
@@ -58,8 +53,8 @@ class Wedge
             method_args   = data.delete(:__wedge_args__)
 
             if method_args == '__wedge_data__' && data
-              method_args   = [data]
-              res = Wedge.scope!(self)[name].send(method_called, *method_args) || ''
+              method_args = [data]
+              res         = Wedge.scope!(self)[name].send(method_called, *method_args) || ''
             else
               # This used to send things like init, we need a better way to
               # send client config data to the server
@@ -67,7 +62,8 @@ class Wedge
               res = Wedge.scope!(self)[name].send(method_called, *method_args) || ''
             end
 
-            # headers["WEDGE-CSRF-TOKEN"] = scope.csrf_token if scope.methods.include? :csrf_token
+            # discuss: I don't think we should update the csrf token # every ajax call
+            # headers["WEDGE-CSRF-TOKEN"] = self.csrf_token if self.methods.include? :csrf_token
 
             if res.is_a? Hash
               headers["Content-Type"] = 'application/json; charset=UTF-8'
@@ -75,17 +71,11 @@ class Wedge
             else
               body << res.to_s
             end
+
+            [status, headers, body]
           else
-            headers['Content-Type'] = 'application/javascript; charset=UTF-8'
-
-            if Wedge.config.debug
-              body << "#{Wedge.javascript(wedge_path)}\n//# sourceMappingURL=#{Wedge.assets_url}/#{wedge_path}.map"
-            else
-              body << Wedge.javascript(wedge_path)
-            end
+            @opal.call env
           end
-
-          [status, headers, body.join]
         else
           response.finish
         end

@@ -1,6 +1,9 @@
 class Playground
   use Rack::Session::Cookie, secret: APP_SECRET
+  # gzips assets
+  use Rack::Deflater, include: %w{text/plain application/xml application/json application/javascript text/css text/json}
 
+  plugin :middleware
   plugin :environments
 
   configure :development do
@@ -13,9 +16,11 @@ class Playground
     BetterErrors.application_root = Dir.pwd
   end
 
+  plugin :csrf
   plugin :wedge, {
     scope: self,
-    plugins: [:form, :ability_list],
+    debug: true,
+    plugins: [:form],
     app_dir: RACK_ENV != 'test' ? 'app' : 'playground/app',
     settings: {
       uploader: {
@@ -54,7 +59,7 @@ class Playground
   }
 
   route do |r|
-    r.wedge_assets
+    # r.wedge_assets
     r.assets
 
     r.root do

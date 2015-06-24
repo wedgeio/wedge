@@ -1,4 +1,4 @@
-require 'opal' unless defined? Opal
+require 'opal'
 require 'opal-jquery'
 
 unless RUBY_ENGINE == 'opal'
@@ -83,10 +83,12 @@ end
 
 if RUBY_ENGINE == 'opal'
   class Element
-    alias_native :mask
+    # alias_native :mask
     alias_native :remove_data, :removeData
     alias_native :replace_with, :replaceWith
-    alias_native :selectize
+    # alias_native :selectize
   end
+else
+  Wedge::Opal.use_gem 'wedge'
 end
 

@@ -189,6 +189,11 @@ class Wedge
         def model_alias alias_name, original_name
           @_aliases ||= IndifferentHash.new
           @_aliases[original_name] = alias_name
+          # discuss: should we also alias_method. right now I'm think no, reason
+          # being it's just a model alias and shouldn't allow people to call
+          # that method on the form to avoid some people using one name and some
+          # another.
+          # alias_method alias_name, original_name
         end
         alias alias_model model_alias
       end
@@ -223,15 +228,16 @@ class Wedge
       #   post = Post.new(edit.attributes)
       #   post.save
       def initialize(atts = {}, options = {})
+        atts      = atts.deep_dup
         @_options = options
         @_atts    = Atts.new atts, _accessors, _aliases, _accessor_options
         @_atts    = @_atts.set_defaults self
 
-        atts.each do |key, val|
+        atts.to_h.each do |key, val|
           # grab the original key if alias is given
           key = _aliases.invert[key] || key
 
-          next if _accessor_options[key][:form]
+          next if (_accessor_options[key] || {})[:form]
 
           accessor = "#{key}="
 
@@ -260,7 +266,7 @@ class Wedge
             opts = _accessor_options[att]
             if _atts.can_read?(att) && (!opts[:hidden] || opts[:hidden].is_a?(Proc) && self.instance_exec(&opts[:hidden]))
               is_form   = opts[:form]
-              key       = for_model ? _aliases[att] : att
+              key       = for_model ? _aliases[att] || att : att
               key       = (for_model && is_form)? "#{key}_attributes" : key
               atts[key] = is_form ? send(att).send(for_model ? 'model_attributes' : 'attributes') : send(att)
             end
@@ -272,9 +278,7 @@ class Wedge
         attributes true
       end
 
-      def atts
-        _atts._atts
-      end
+      alias atts _atts
 
       def slice(*keys)
         IndifferentHash.new.tap do |atts|

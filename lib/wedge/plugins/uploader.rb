@@ -6,7 +6,7 @@ class Wedge
       on :compile do |for_client|
         settings = Wedge.config.settings[:uploader]
         store[:settings] = settings.select do |k, v|
-          for_client ? %w(aws_access_key_id bucket).include?(k) : true
+          for_client ? %i(aws_access_key_id bucket).include?(k) : true
         end if settings
       end
 

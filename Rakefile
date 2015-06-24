@@ -16,7 +16,7 @@ Opal.append_path File.expand_path('../lib', __FILE__)
 Opal.append_path File.expand_path('../playground/app', __FILE__)
 Opal.append_path File.expand_path('../playground/public', __FILE__)
 
-Opal::RSpec::RakeTask.new('opal:rspec') do |s|
+Opal::RSpec::RakeTask.new('opal:rspec', Playground) do |s|
   s.index_path = 'spec/index.html.erb'
 end
 

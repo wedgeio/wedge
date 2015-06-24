@@ -15,7 +15,7 @@ end
 
 describe Wedge::Plugins::CurrentUser do
   let(:test_comp) { Wedge[:test] }
-  let(:current_user) { Wedge[:current_user] }
+  let(:current_user) { Wedge[:current_user_plugin].current_user }
 
   context 'admin' do
     it 'expects to be an admin' do

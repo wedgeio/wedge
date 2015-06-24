@@ -88,11 +88,22 @@ class Wedge
           IndifferentHash.new(_errors)
         end
 
+        # gives back errors using the model_alias keys
+        def model_errors
+          IndifferentHash.new(_model_errors)
+        end
+
         # Hash of errors for each attribute in this model.
         def _errors
           @_errors ||= Hash.new do |hash, key|
-            hash[key] = _accessor_options[key].key?(:form) ? {} : []
+            data = _accessor_options[key].key?(:form) ? {} : []
+            alias_key       = _aliases[key] || key
+           _model_errors[alias_key] = hash[key] = data
           end
+        end
+
+        def _model_errors
+          @_model_errors ||= {}
         end
 
         protected

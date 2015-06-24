@@ -32,6 +32,10 @@ class Wedge
         obj
       end
 
+      def plugin *args
+        Wedge.plugin *args
+      end
+
       alias_method :original_name, :name
       def wedge_name(*args)
         if args.any?
@@ -181,25 +185,46 @@ class Wedge
               # refreshed the browser yet.
               call_url = "#{Wedge.assets_url.sub("#{Wedge.config.assets_key}/",'')}/#{path_name}.call"
 
-              HTTP.post(call_url,
-                headers: {
-                  'X-CSRF-TOKEN' => Element.find('meta[name=_csrf]').attr('content'),
-                  'X-WEDGE-METHOD-REQUEST' => true
-                },
-                payload: payload) do |response|
+              if block_given?
+                HTTP.post(call_url,
+                  headers: {
+                    'X-CSRF-TOKEN' => Element.find('meta[name=_csrf]').attr('content'),
+                    'X-WEDGE-METHOD-REQUEST' => true
+                  },
+                  async: false,
+                  payload: payload) do |response|
 
-                  # We set the new csrf token
-                  xhr  = Native(response.xhr)
-                  csrf = xhr.getResponseHeader('WEDGE-CSRF-TOKEN')
-                  Element.find('meta[name=_csrf]').attr 'content', csrf
-                  ###########################
+                    # We set the new csrf token
+                    xhr  = Native(response.xhr)
+                    # discuss: I don't think we should update the csrf token every ajax call
+                    # csrf = xhr.getResponseHeader('WEDGE-CSRF-TOKEN')
+                    Element.find('meta[name=_csrf]').attr 'content', csrf
+                    ###########################
 
-                  res = JSON.from_object(`response`)
+                    res = JSON.from_object(`response`)
 
-                  blk.call res[:body], res
+                    blk.call res[:body], res
+                end
+              else
+                data = {
+                  headers: {
+                   'X-CSRF-TOKEN' => "#{Element.find('meta[name=_csrf]').attr('content')}",
+                   'X-WEDGE-METHOD-REQUEST' => true
+                  },
+                  dataType: 'json',
+                  type: 'POST',
+                  url: call_url,
+                  data: payload,
+                  async: false
+                }.to_n
+
+                response = `$.ajax(data).responseText`
+                begin
+                  JSON.parse response
+                rescue
+                  puts response
+                end
               end
-
-              true
             end
           end
 
@@ -220,14 +245,17 @@ class Wedge
       end
     end
 
-    if RUBY_ENGINE == 'opal'
-      def wedge(*args)
-        Wedge[*args]
-      end
+    # We want the scope to override this method if defined
+    def wedge(*args, &block)
+      # fix: can't pass block to Wedge, opal error:
+      # https://github.com/opal/opal/issues/959
+      # scope.respond_to?(:wedge) ? scope.wedge(*args, &block) : Wedge[*args, &block]
+      scope.respond_to?(:wedge) ? scope.wedge(*args, &block) : Wedge[*args]
+    end
 
-      def wedge_plugin(name, *args, &block)
-        wedge("#{name}_plugin", *args, &block)
-      end
+    # We want the scope to override this method if defined
+    def wedge_plugin(name, *args, &block)
+      scope.respond_to?(:wedge_plugin) ? scope.wedge_plugin(*args, &block) : wedge("#{name}_plugin", *args, &block)
     end
 
     def wedge_scope

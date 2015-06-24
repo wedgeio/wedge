@@ -68,6 +68,22 @@ class Wedge
       end
     end
 
+    def plugins= plugins
+      plugins.each { |p| plugin(p.to_s) }
+    end
+
+    def scope= value
+      if value.respond_to? :new
+        begin
+          @data.scope = value.new
+        rescue
+          @data.scope = value.new({})
+        end
+      else
+        @data.scope = value
+      end
+    end
+
     def method_missing(method, *args, &block)
       if @data.respond_to?(method, true)
         @data.send method, *args, &block

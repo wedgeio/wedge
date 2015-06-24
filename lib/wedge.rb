@@ -96,8 +96,8 @@ class Wedge
     #
     # @param name [String, Symbol, #to_s] The unique name given to a component.
     # @return [Wedge::Component#method] Last line of the method called.
-    def [](name, *args, &block)
-      config.component_class[name].wedge_new self, *args, &block
+    def [](*args, &block)
+      config.component_class[args.shift].wedge_new self, *args, &block
     end
 
     %w(store scope).each do |meth|

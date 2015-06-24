@@ -1,3 +1,5 @@
+require 'wedge/plugins/form'
+
 class Wedge
   module Plugins
     class AbilityList < Form
