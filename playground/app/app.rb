@@ -16,7 +16,7 @@ class Playground
     BetterErrors.application_root = Dir.pwd
   end
 
-  plugin :csrf
+  plugin :csrf, skip_if: ->(_) { RACK_ENV == 'test' }
   plugin :wedge, {
     scope: self,
     debug: true,

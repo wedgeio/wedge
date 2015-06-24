@@ -331,7 +331,7 @@ class Wedge
     alias_method :function, :wedge_function
 
     def wedge_from_server?
-      !scope.respond_to?(:request) || (request && !request.env.include?('HTTP_X_WEDGE_METHOD_REQUEST'))
+      begin; !request.try(:env).include?('HTTP_X_WEDGE_METHOD_REQUEST'); rescue; true end
     end
     alias_method :from_server?, :wedge_from_server?
 
