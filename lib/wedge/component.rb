@@ -222,7 +222,11 @@ class Wedge
                 begin
                   JSON.parse response
                 rescue
-                  puts response
+                  if response.empty?
+                    raise "Ajax response to #{call_url} was empty."
+                  else
+                    puts response
+                  end
                 end
               end
             end

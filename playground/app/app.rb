@@ -20,7 +20,7 @@ class Playground
   plugin :wedge, {
     scope: self,
     debug: true,
-    plugins: [:form],
+    # plugins: [:form],
     app_dir: RACK_ENV != 'test' ? 'app' : 'playground/app',
     settings: {
       uploader: {
@@ -31,6 +31,7 @@ class Playground
     }
   }
 
+  wedge_plugin :form
   wedge_plugin(:current_user, client_fields: %w'id first_name last_name is_admin') do
     User.find(1)
   end
