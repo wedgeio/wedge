@@ -37,11 +37,6 @@ class Playground
     }
   end
 
-  wedge_plugin :form
-  wedge_plugin(:current_user, client_fields: %w'id first_name last_name is_admin') do
-    User.find(1)
-  end
-
   # builder = Opal::Builder.new(:stubs=>['opal'])
   # builder.append_paths(APP_ROOT)
   # builder.use_gem('opal-jquery')

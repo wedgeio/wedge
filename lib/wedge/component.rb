@@ -117,7 +117,7 @@ class Wedge
       alias_method :dom, :wedge_dom
 
       def wedge_config
-        @wedge_config ||= Config.new Wedge.config.data.dup.merge(klass: self)
+        @wedge_config ||= Config.new Wedge.config.data.deep_dup.merge(klass: self)
       end
       alias_method :config, :wedge_config
 
