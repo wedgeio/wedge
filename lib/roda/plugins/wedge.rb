@@ -1,9 +1,9 @@
 class Roda
   module RodaPlugins
     class WedgePlugin
-      def self.configure(app, opts = {})
-        if !opts.delete(:disable_middleware)
-          app.use Wedge::Middleware, opts
+      def self.configure(app, opts = false, &block)
+        if !opts || !opts.delete(:disable_middleware)
+          app.use Wedge::Middleware, opts || block
         else
           opts.each { |k, v| Wedge.config.send "#{k}=", v }
         end

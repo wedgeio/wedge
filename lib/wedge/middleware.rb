@@ -9,7 +9,12 @@ class Wedge
         s.debug = Wedge.config.debug
       }
 
-      settings.each { |k, v| Wedge.config.send "#{k}=", v }
+      case settings
+      when Proc
+        Wedge.config.instance_eval &settings
+      else
+        settings.each { |k, v| Wedge.config.send "#{k}=", v }
+      end
     end
 
     def call(env)

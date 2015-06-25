@@ -17,20 +17,25 @@ class Playground
   end
 
   plugin :csrf, skip_if: ->(_) { RACK_ENV == 'test' }
-  plugin :wedge, {
-    scope: self,
-    debug: true,
-    # disable_middleware: true,
-    # plugins: [:form],
-    app_dir: RACK_ENV != 'test' ? 'app' : 'playground/app',
-    settings: {
-      uploader: {
-        aws_access_key_id: AWS_ACCESS_KEY_ID,
-        aws_secret_access_key: AWS_SECRET_ACCESS_KEY,
-        bucket: AWS_BUCKET
-      }
+  plugin :wedge do |c|
+    c.scope = Playground
+    c.debug = true
+    c.app_dir = RACK_ENV != 'test' ? 'app' : 'playground/app'
+    c.plugin :form
+    c.plugin :current_user, client_fields: %w'id first_name last_name is_admin' do
+      User.find(1)
+    end
+    # c.plugin_settings :uploader, {
+    #   aws_access_key_id: AWS_ACCESS_KEY_ID,
+    #   aws_secret_access_key: AWS_SECRET_ACCESS_KEY,
+    #   bucket: AWS_BUCKET
+    # }
+    c.settings[:uploader] = {
+      aws_access_key_id: AWS_ACCESS_KEY_ID,
+      aws_secret_access_key: AWS_SECRET_ACCESS_KEY,
+      bucket: AWS_BUCKET
     }
-  }
+  end
 
   wedge_plugin :form
   wedge_plugin(:current_user, client_fields: %w'id first_name last_name is_admin') do
