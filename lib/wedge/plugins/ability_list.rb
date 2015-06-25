@@ -1,5 +1,4 @@
-# fix: figure out why opal is freaking out about maximum call stack exceeded
-require 'wedge/plugins/form' unless RUBY_ENGINE == 'opal'
+require 'wedge/plugins/form'
 
 class Wedge
   module Plugins

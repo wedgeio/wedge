@@ -20,6 +20,7 @@ class Playground
   plugin :wedge, {
     scope: self,
     debug: true,
+    # disable_middleware: true,
     # plugins: [:form],
     app_dir: RACK_ENV != 'test' ? 'app' : 'playground/app',
     settings: {

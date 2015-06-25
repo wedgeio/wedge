@@ -29,7 +29,7 @@ class Playground
     def display options = {}, &block
       return unless server?
 
-      dom.find('head').add_child csrf_metatag if respond_to? :csrf_metatag
+      begin; dom.find('head').add_child csrf_metatag; rescue; end
       body_dom = dom.find('body')
       body_dom << block.call if block_given?
 

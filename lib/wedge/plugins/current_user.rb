@@ -1,4 +1,4 @@
-require 'wedge/plugins/form' unless RUBY_ENGINE == 'opal'
+require 'wedge/plugins/form'
 
 class Wedge
   module Plugins

@@ -1,29 +1,42 @@
 class Wedge
   class Middleware
-    def initialize(app, settings = {})
-      @app  = app
-      @opal = Wedge::Opal::Server.new { |s|
+    def initialize(app = false, settings = {}, scope = false)
+      @app   = app
+      @scope = scope || self.class.scope
+      @opal  = Wedge::Opal::Server.new { |s|
         s.prefix = Wedge.config.assets_url
         s.append_path "#{Dir.pwd}/#{Wedge.config.app_dir}"
         s.debug = Wedge.config.debug
       }
 
-      settings.each do |k, v|
-        Wedge.config.send "#{k}=", v
-      end
+      settings.each { |k, v| Wedge.config.send "#{k}=", v }
     end
 
     def call(env)
-      responder = Responder.new(@app, @opal, env)
+      responder = Responder.new(@app, @opal, @scope, env)
       responder.respond
     end
 
+    class << self
+      attr_accessor :scope
+
+      def scope! scope
+        klass = Class.new(self)
+        klass.instance_variable_set(:@scope, scope)
+        klass
+      end
+
+      def call env
+        self.new.call env
+      end
+    end
+
     class Responder
-      attr_reader :opal
+      attr_reader :opal, :scope
       attr_accessor :app, :env, :wedge_path, :extension
 
-      def initialize(app, opal, env)
-        @app = app; @opal = opal; @env = env
+      def initialize(app, opal, scope, env)
+        @app = app; @opal = opal; @scope = (scope || self); @env = env
       end
 
       def respond
@@ -54,12 +67,12 @@ class Wedge
 
             if method_args == '__wedge_data__' && data
               method_args = [data]
-              res         = Wedge.scope!(self)[name].send(method_called, *method_args) || ''
+              res         = Wedge.scope!(scope)[name].send(method_called, *method_args) || ''
             else
               # This used to send things like init, we need a better way to
               # send client config data to the server
               # res = scope.wedge(name, data).send(method_called, *method_args) || ''
-              res = Wedge.scope!(self)[name].send(method_called, *method_args) || ''
+              res = Wedge.scope!(scope)[name].send(method_called, *method_args) || ''
             end
 
             # discuss: I don't think we should update the csrf token # every ajax call
@@ -88,7 +101,7 @@ class Wedge
       private
 
       def path
-        @env['PATH_INFO']
+        @env['PATH_INFO'].present?? @env['PATH_INFO'] : @env['PATH_INFO'] = @env['REQUEST_PATH']
       end
 
       def request
@@ -97,7 +110,7 @@ class Wedge
 
       def response
         @response ||= begin
-          status, headers, body = @app.call(request.env)
+          status, headers, body = (@app ? @app.call(request.env) : [404, {}, ''])
           Rack::Response.new(body, status, headers)
         end
       end

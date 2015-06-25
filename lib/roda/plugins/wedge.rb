@@ -2,7 +2,11 @@ class Roda
   module RodaPlugins
     class WedgePlugin
       def self.configure(app, opts = {})
-        app.use Wedge::Middleware, opts
+        if !opts.delete(:disable_middleware)
+          app.use Wedge::Middleware, opts
+        else
+          opts.each { |k, v| Wedge.config.send "#{k}=", v }
+        end
       end
 
       module ClassMethods
@@ -20,21 +24,19 @@ class Roda
           Wedge.scope!(self)["#{name}_plugin", *args, &block]
         end
       end
-      #
-      # module RequestClassMethods
-      #   def wedge_route_regex
-      #     assets_url = ::Wedge.assets_url.gsub(%r{^\/}, '')
-      #     # # We also allow for no assets key so when we post server methods there
-      #     # # isn't an error if the key has been changed since a browser refresh.
-      #     %r{(?:#{assets_url}|#{assets_url.sub("#{::Wedge.config.assets_key}/", '')})/(.*)\.(.*)$}
-      #   end
-      # end
-      #
-      # module RequestMethods
-      #   def wedge_assets
-      #     on self.class.wedge_route_regex do |component, ext|
-      #   end
-      # end
+
+      # By settings disable_middleware: true and then using r.wedge_assets
+      # in your roda routes your wedge components will gain access to the roda
+      # scope.
+      # warning: this will slow development load times as it re-compiles the js
+      # every time.
+      module RequestMethods
+        def wedge_assets
+          on Wedge.assets_url_regex do
+            run Wedge::Middleware.scope!(scope)
+          end
+        end
+      end
     end
 
     register_plugin(:wedge, WedgePlugin)
