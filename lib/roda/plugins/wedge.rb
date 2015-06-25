@@ -25,9 +25,9 @@ class Roda
         end
       end
 
-      # By settings disable_middleware: true and then using r.wedge_assets
-      # in your roda routes your wedge components will gain access to the roda
-      # scope.
+      # By setting disable_middleware: true and then using r.wedge_assets
+      # in your roda routes, wedge components will gain access to the roda scope.
+      #
       # warning: this will slow development load times as it re-compiles the js
       # every time.
       module RequestMethods
