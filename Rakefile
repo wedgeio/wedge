@@ -10,6 +10,7 @@ require 'bundler/gem_tasks'
 require 'bundler/setup'
 
 require 'config/boot'
+require 'tilt/erubis'
 require 'opal/rspec/rake_task'
 
 Opal.append_path File.expand_path('../lib', __FILE__)

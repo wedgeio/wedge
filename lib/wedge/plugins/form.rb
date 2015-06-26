@@ -108,7 +108,7 @@ class Wedge
                 # attributes
                 (_atts.respond_to?(att) ? (_atts.send(att) || {}) : {}),
                 # options
-                att_options
+                { _nested: true }.merge(att_options)
               ])
             elsif default
               send("#{att}=", default, true)
@@ -229,11 +229,11 @@ class Wedge
       #   post.save
       def initialize(atts = {}, options = {})
         atts      = atts.deep_dup
-        @_options = options
+        @_options = options.indifferent
         @_atts    = Atts.new atts, _accessors, _aliases, _accessor_options
         @_atts    = @_atts.set_defaults self
 
-        atts.to_h.each do |key, val|
+        atts.each do |key, val|
           # grab the original key if alias is given
           key = _aliases.invert[key] || key
 
@@ -259,12 +259,26 @@ class Wedge
         @_aliases || (self.class._aliases || IndifferentHash.new).deep_dup
       end
 
+      def nested?
+        @_options[:_nested] ? true : false
+      end
+
+      def attributes?
+        @_options[:_attributes] ? true : false
+      end
+
+      def model_attributes?
+        @_options[:_model_attributes] ? true : false
+      end
+
       # Return hash of attributes and values.
       def attributes for_model = false
         IndifferentHash.new.tap do |atts|
+          _options[:_attributes]       = true
+          _options[:_model_attributes] = for_model
           _accessors.each do |att|
             opts = _accessor_options[att]
-            if _atts.can_read?(att) && (!opts[:hidden] || opts[:hidden].is_a?(Proc) && self.instance_exec(&opts[:hidden]))
+            if _atts.can_read?(att) && (!opts[:hidden] || opts[:hidden].is_a?(Proc) && !self.instance_exec(&opts[:hidden]))
               is_form   = opts[:form]
               key       = for_model ? _aliases[att] || att : att
               key       = (for_model && is_form)? "#{key}_attributes" : key
@@ -279,6 +293,7 @@ class Wedge
       end
 
       alias atts _atts
+      alias options _options
 
       def slice(*keys)
         IndifferentHash.new.tap do |atts|
