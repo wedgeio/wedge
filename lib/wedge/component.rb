@@ -117,7 +117,7 @@ class Wedge
       alias_method :dom, :wedge_dom
 
       def wedge_config
-        @wedge_config ||= Config.new Wedge.config.data.deep_dup.merge(klass: self)
+        @wedge_config ||= Config.new klass: self, scope: Wedge.config.scope
       end
       alias_method :config, :wedge_config
 
@@ -280,7 +280,7 @@ class Wedge
     # Duplicate of class condig [Config]
     # @return config [Config]
     def wedge_config
-      @wedge_config ||= Config.new(self.class.wedge_config.data.dup)
+      @wedge_config ||= Config.new(self.class.wedge_config.data.deep_dup)
     end
     alias_method :config, :wedge_config
 
