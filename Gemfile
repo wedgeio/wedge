@@ -5,7 +5,7 @@ gemspec
 
 gem 'opal', github: 'opal/opal'
 gem 'opal-jquery', github: 'opal/opal-jquery'
-gem 'opal-rspec-cj', path: '~/gems/opal-rspec'
+gem 'opal-rspec-cj'
 gem 'binding_of_caller'
 gem 'better_errors'
 gem 'slim'
