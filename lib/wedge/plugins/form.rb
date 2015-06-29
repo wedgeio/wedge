@@ -110,7 +110,7 @@ class Wedge
                 # options
                 { _nested: true }.merge(att_options)
               ])
-            elsif default
+            elsif att_options.key? :default
               send("#{att}=", default, true)
             end
           end
