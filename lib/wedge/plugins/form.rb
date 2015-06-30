@@ -136,7 +136,7 @@ class Wedge
       class << self
         attr_accessor :_accessors, :_accessor_options, :_aliases
 
-        alias original_attr_reader attr_reader
+        alias_method :original_attr_reader, :attr_reader
         def attr_reader(*attrs, &block)
           default_opts = { read_only: true }
           opts = attrs.pop
@@ -151,7 +151,7 @@ class Wedge
           attr_accessor *[name, { form: name }.merge(options)]
         end
 
-        alias original_attr_accessor attr_accessor
+        alias_method :original_attr_accessor, :attr_accessor
         def attr_accessor(*attrs, &block)
           attrs.each_with_index do |att, i|
             if att.is_a? Hash
@@ -167,6 +167,11 @@ class Wedge
                 ((@_accessor_options ||= IndifferentHash.new)[a] ||= {}).merge! options
               end
             else
+              # issue: OPAL is not using the alias method original_attr_reader
+              # correctly.  It's still somehow getting in here when called below.
+              next if %w'_atts _options'.include? att.to_s
+              ###################################################################
+
               # set empty options if need be
               (@_accessor_options ||= IndifferentHash.new)[att] ||= {}
               # store the accessors

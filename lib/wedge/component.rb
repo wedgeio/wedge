@@ -189,7 +189,7 @@ class Wedge
                 HTTP.post(call_url,
                   headers: {
                     'X-CSRF-TOKEN' => Element.find('meta[name=_csrf]').attr('content'),
-                    'X-WEDGE-METHOD-REQUEST' => true
+                    'X-WEDGE-METHOD-REQUEST' => meth
                   },
                   async: false,
                   payload: payload) do |response|
@@ -198,7 +198,7 @@ class Wedge
                     xhr  = Native(response.xhr)
                     # discuss: I don't think we should update the csrf token every ajax call
                     # csrf = xhr.getResponseHeader('WEDGE-CSRF-TOKEN')
-                    Element.find('meta[name=_csrf]').attr 'content', csrf
+                    # Element.find('meta[name=_csrf]').attr 'content', csrf
                     ###########################
 
                     res = JSON.from_object(`response`)
@@ -209,7 +209,7 @@ class Wedge
                 data = {
                   headers: {
                    'X-CSRF-TOKEN' => "#{Element.find('meta[name=_csrf]').attr('content')}",
-                   'X-WEDGE-METHOD-REQUEST' => true
+                   'X-WEDGE-METHOD-REQUEST' => meth
                   },
                   dataType: 'json',
                   type: 'POST',
@@ -336,7 +336,11 @@ class Wedge
     alias_method :from_server?, :wedge_from_server?
 
     def wedge_from_client?
-      !wedge_from_server?
+      begin
+        caller_locations(1,1)[0].label == request.try(:env)['HTTP_X_WEDGE_METHOD_REQUEST']
+      rescue
+        false
+      end
     end
     alias_method :from_client?, :wedge_from_client?
 

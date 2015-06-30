@@ -28,10 +28,10 @@ class Wedge
 
       on :server do
         def get_current_user
-          attributes    = Wedge[:current_user, instance_exec(&Wedge[:current_user_plugin].config.block) || {}].attributes
+          form          = Wedge[:current_user, instance_exec(&Wedge[:current_user_plugin].config.block) || {}]
           client_fields = config.settings[:client_fields]
 
-          from_client?? attributes.select { |k, v| client_fields.include? k } : attributes
+          from_client?? form.attributes.select { |k, v| client_fields.include? k } : attributes
         end
       end
 

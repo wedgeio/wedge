@@ -3,6 +3,7 @@ class Wedge
     def initialize(app = false, settings = {}, scope = false)
       @app   = app
       @scope = scope || self.class.scope
+      puts 'moo'
       @opal  = Wedge::Opal::Server.new { |s|
         s.prefix = Wedge.config.assets_url
         s.debug  = Wedge.config.debug
