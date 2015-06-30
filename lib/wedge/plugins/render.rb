@@ -2,7 +2,7 @@ class Wedge
   module Plugins
     module Render
       def display_errors options = {}, &block
-        dom = options.delete(:dom) || _dom
+        dom = options.delete(:dom) || _options[:dom]
         d_errors = errors
 
         if override_errors = options[:override_errors]
@@ -90,6 +90,19 @@ class Wedge
           when 'textarea'
             element.val value.to_s
           end
+        end
+      end
+
+      def _error_name key, error
+        case error.to_s.to_sym
+        when :not_email
+          'Email Isn\'t Valid.'
+        when :not_present
+          'Required.'
+        when :not_equal
+          'Password does not match.'
+        else
+          !error[/\s/] ? error.to_s.gsub(/_/, ' ').titleize : error
         end
       end
     end

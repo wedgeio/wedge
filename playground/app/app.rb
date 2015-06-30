@@ -71,5 +71,9 @@ class Playground
     r.on 'uploader' do
       wedge(:uploader).to_js :display
     end
+
+    r.on 'todo_list' do
+      wedge(:todo_list).to_js :display
+    end
   end
 end

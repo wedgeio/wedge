@@ -2647,3 +2647,142 @@ button:active, input[type="button"]:active, input[type="reset"]:active, input[ty
 .side-image .side-image-content button {
   padding: 0.7em 1em;
 }
+
+body.todo_list {
+  /*
+   * Non-mobile screens
+   */
+}
+body.todo_list button {
+  color: #fff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px #fff;
+  padding: 1px 4px 2px 4px;
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+body.todo_list .container {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #fff;
+  border-bottom: 1px solid #ddd;
+}
+body.todo_list h1 {
+  margin: 0;
+  padding: 10px 15px;
+  background-color: #8bad53;
+  border-bottom: 1px solid #6f8b42;
+  color: #fff;
+  font-size: 16px;
+}
+body.todo_list .hidden {
+  display: none;
+}
+body.todo_list #notice {
+  padding: 10px;
+  margin: 15px;
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+}
+body.todo_list ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: li;
+}
+body.todo_list li {
+  padding: 10px 15px 10px 40px;
+  border-bottom: 1px solid #ddd;
+  position: relative;
+}
+body.todo_list li:before {
+  content: counter(li);
+  /* Use the counter as content */
+  counter-increment: li;
+  /* Increment the counter by 1 */
+  position: absolute;
+  top: 0;
+  left: 0;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  background: #f2f2f2;
+  border-right: 1px solid #ddd;
+  margin: 0;
+  padding: 10px;
+  font-size: 11px;
+  height: 100%;
+  color: #999;
+  text-align: center;
+}
+body.todo_list .delete {
+  background-color: #d95e5e;
+  margin: 0;
+  position: absolute;
+  right: 15px;
+  top: 32%;
+  opacity: 0;
+  -webkit-transition: opacity linear .1s;
+  -moz-transition: opacity linear .1s;
+  transition: opacity linear .1s;
+}
+body.todo_list li:hover .delete {
+  opacity: 1;
+}
+body.todo_list textarea {
+  display: block;
+  overflow: auto;
+  vertical-align: top;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+  margin: 15px 15px 10px 15px;
+  padding: 10px;
+  font-size: 13px;
+}
+body.todo_list textarea:focus {
+  outline: none;
+  border-color: #52a8ec;
+  box-shadow: 0 1px 1px rgba(82, 168, 236, 0.3);
+}
+body.todo_list #add {
+  background: #8e8f8d;
+  margin: 0 15px 15px 15px;
+}
+body.todo_list p[role="contentinfo"] {
+  padding: 20px;
+  margin: 0;
+  text-align: center;
+  color: #bbb;
+}
+body.todo_list span {
+  font-family: Georgia, serif;
+  font-style: italic;
+}
+body.todo_list a {
+  color: #bbb;
+  text-decoration: none;
+}
+body.todo_list a:hover {
+  color: #555;
+}
+@media screen and (min-width: 400px) {
+  body.todo_list .container {
+    width: 400px;
+    margin: 100px auto 0;
+    border: 1px solid #ddd;
+  }
+  body.todo_list h1 {
+    margin: -1px -1px 0 -1px;
+    border: 1px solid #6f8b42;
+  }
+  body.todo_list textarea {
+    width: 348px;
+  }
+}

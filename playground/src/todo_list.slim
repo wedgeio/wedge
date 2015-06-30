@@ -1,0 +1,17 @@
+.container
+  h1#title Today&rsquo;s Goals
+  p#notice.hidden You have no goals for today.
+  ul#list
+    li
+      | Buy apples
+      button.delete Delete
+    li
+      | Buy bananas
+      button.delete Delete
+    li
+      | Eat apples and bananas
+      button.delete Delete
+  form#add-form
+    textarea#task-input name="todo[description]" placeholder=("Enter new goal here") rows="1" 
+    button#add Add to list
+/! .container

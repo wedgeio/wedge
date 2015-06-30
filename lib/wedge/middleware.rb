@@ -5,8 +5,8 @@ class Wedge
       @scope = scope || self.class.scope
       @opal  = Wedge::Opal::Server.new { |s|
         s.prefix = Wedge.config.assets_url
+        s.debug  = Wedge.config.debug
         s.append_path "#{Dir.pwd}/#{Wedge.config.app_dir}"
-        s.debug = Wedge.config.debug
       }
 
       case settings

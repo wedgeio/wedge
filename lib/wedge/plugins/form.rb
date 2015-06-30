@@ -6,8 +6,6 @@ class Wedge
     class Form < Component
       name :form_plugin
 
-      attr_reader :_atts, :_options
-
       include Methods
       include Validations
       include Render
@@ -138,6 +136,7 @@ class Wedge
       class << self
         attr_accessor :_accessors, :_accessor_options, :_aliases
 
+        alias original_attr_reader attr_reader
         def attr_reader(*attrs, &block)
           default_opts = { read_only: true }
           opts = attrs.pop
@@ -152,6 +151,7 @@ class Wedge
           attr_accessor *[name, { form: name }.merge(options)]
         end
 
+        alias original_attr_accessor attr_accessor
         def attr_accessor(*attrs, &block)
           attrs.each_with_index do |att, i|
             if att.is_a? Hash
@@ -197,6 +197,8 @@ class Wedge
         end
         alias alias_model model_alias
       end
+
+      original_attr_reader :_atts, :_options
 
       # Initialize with a hash of attributes and values.
       # Extra attributes are discarded.
@@ -276,6 +278,7 @@ class Wedge
         IndifferentHash.new.tap do |atts|
           _options[:_attributes]       = true
           _options[:_model_attributes] = for_model
+
           _accessors.each do |att|
             opts = _accessor_options[att]
             if _atts.can_read?(att) && (!opts[:hidden] || opts[:hidden].is_a?(Proc) && !self.instance_exec(&opts[:hidden]))

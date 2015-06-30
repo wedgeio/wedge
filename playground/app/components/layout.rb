@@ -33,6 +33,10 @@ class Playground
       body_dom = dom.find('body')
       body_dom << block.call if block_given?
 
+      if body_class = options[:body_class]
+        body_dom.add_class body_class
+      end
+
       dom
     end
   end
