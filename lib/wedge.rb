@@ -26,7 +26,7 @@ class Wedge
   class << self
     extend Forwardable
 
-    ATTR_ACCESSORS = %i{scope store config events}
+    ATTR_ACCESSORS = %i{scope store config events method_called}
 
     attr_accessor(*ATTR_ACCESSORS)
 
@@ -101,12 +101,13 @@ class Wedge
     end
 
     %w(store scope).each do |meth|
-      define_method "#{meth}!" do |value|
+      define_method "#{meth}!" do |value, method_called = nil|
         klass = Class.new(self)
         ATTR_ACCESSORS.each do |name|
           klass.instance_variable_set(:"@#{name}", Wedge.instance_variable_get(:"@#{name}").deep_dup)
         end
         klass.instance_variable_set(:"@#{meth}", value.deep_dup)
+        klass.instance_variable_set(:"@method_called", method_called) if meth.to_s == 'scope'
         klass
       end
     end

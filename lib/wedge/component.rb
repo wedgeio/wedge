@@ -4,11 +4,16 @@ class Wedge
   class Component
     include Methods
 
+    attr_accessor :wedge_method_called
+
     class << self
       attr_accessor :wedge_on_count
 
       def wedge_new(klass, *args, &block)
         obj = allocate
+
+        # discuss: come up with something better
+        obj.wedge_method_called = klass.method_called
 
         %w(store scope).each do |meth|
           if value = klass.send(meth)
@@ -331,13 +336,19 @@ class Wedge
     alias_method :function, :wedge_function
 
     def wedge_from_server?
-      begin; !request.try(:env).include?('HTTP_X_WEDGE_METHOD_REQUEST'); rescue; true end
+      begin
+        !(wedge_method_called == caller_locations(1,1)[0].label)
+      rescue
+        true
+      end
     end
     alias_method :from_server?, :wedge_from_server?
 
+    alias_method :method_called, :wedge_method_called
+
     def wedge_from_client?
       begin
-        caller_locations(1,1)[0].label == request.try(:env)['HTTP_X_WEDGE_METHOD_REQUEST']
+        wedge_method_called == caller_locations(1,1)[0].label
       rescue
         false
       end

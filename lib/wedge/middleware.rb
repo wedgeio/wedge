@@ -72,12 +72,12 @@ class Wedge
 
             if method_args == '__wedge_data__' && data
               method_args = [data]
-              res         = Wedge.scope!(scope)[name].send(method_called, *method_args) || ''
+              res         = Wedge.scope!(scope, method_called)[name].send(method_called, *method_args) || ''
             else
               # This used to send things like init, we need a better way to
               # send client config data to the server
               # res = scope.wedge(name, data).send(method_called, *method_args) || ''
-              res = Wedge.scope!(scope)[name].send(method_called, *method_args) || ''
+              res = Wedge.scope!(scope, method_called)[name].send(method_called, *method_args) || ''
             end
 
             # discuss: I don't think we should update the csrf token # every ajax call
