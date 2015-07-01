@@ -245,8 +245,7 @@ class Wedge
 
         atts.each do |key, val|
           # grab the original key if alias is given
-          key = _aliases.invert[key] || key
-          (@_atts_keys ||= []) << key
+          _atts_keys << (key = _aliases.invert[key] || key)
 
           next if (_accessor_options[key] || {})[:form]
 
@@ -256,6 +255,10 @@ class Wedge
             send(accessor, val)
           end
         end
+      end
+
+      def _atts_keys
+        @_atts_keys ||= []
       end
 
       def _with_atts
