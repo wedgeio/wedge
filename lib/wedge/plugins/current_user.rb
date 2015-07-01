@@ -30,9 +30,7 @@ class Wedge
         def get_current_user
           data = instance_exec(&Wedge[:current_user_plugin].config.block) || {}
 
-          puts 'cow'
           if from_client?
-            puts 'moo'
             form          = Wedge[:current_user, data]
             client_fields = config.settings[:client_fields]
             form.attributes.select { |k, v| client_fields.include? k }

@@ -2,7 +2,7 @@ class Roda
   module RodaPlugins
     class WedgePlugin
       def self.configure(app, opts = false, &block)
-        app.use Wedge::Middleware, opts || block, true
+        app.use Wedge::Middleware, opts || block
       end
 
       module ClassMethods

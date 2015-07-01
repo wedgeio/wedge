@@ -24,6 +24,7 @@ class Wedge
         cache_assets: false,
         is_plugin: false,
         compile_str: false,
+        skip_call_middleware: false,
         requires: IndifferentHash.new,
         triggered_browser_events: false,
         store: IndifferentHash.new,

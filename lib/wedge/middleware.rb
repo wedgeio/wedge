@@ -2,7 +2,7 @@ class Wedge
   class Middleware
     attr_reader :skip_call
 
-    def initialize(app = false, settings = false, skip_call = false)
+    def initialize(app = false, settings = false)
       if settings
         case settings
         when Proc
@@ -28,7 +28,7 @@ class Wedge
 
       @app       = app
       @scope     = self.class.scope
-      @skip_call = skip_call
+      @skip_call = !self.class.skip_call.nil?? self.class.skip_call : Wedge.config.skip_call_middleware
     end
 
     def call(env)
@@ -42,6 +42,7 @@ class Wedge
       def scope! scope
         klass = Class.new(self)
         klass.instance_variable_set(:@scope, scope)
+        klass.instance_variable_set(:@skip_call, false)
         klass
       end
 
