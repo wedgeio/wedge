@@ -2,11 +2,7 @@ class Roda
   module RodaPlugins
     class WedgePlugin
       def self.configure(app, opts = false, &block)
-        if !opts || !opts.delete(:disable_middleware)
-          app.use Wedge::Middleware, opts || block
-        else
-          opts.each { |k, v| Wedge.config.send "#{k}=", v }
-        end
+        app.use Wedge::Middleware, opts || block, true
       end
 
       module ClassMethods
@@ -28,7 +24,7 @@ class Roda
       module RequestMethods
         def wedge_assets
           on Wedge.assets_url_regex do
-            run @@__wedge_middleware__ ||= Wedge::Middleware.scope!(scope).new
+            run Wedge::Middleware.scope!(scope)
           end
         end
       end

@@ -1,38 +1,43 @@
 class Wedge
   class Middleware
-    def initialize(app = false, settings = {}, scope = false)
-      @app   = app
-      @scope = scope || self.class.scope
-      @opal  = { server: Wedge::Opal::Server.new { |s|
-        s.prefix = Wedge.config.assets_url
-        s.debug  = Wedge.config.debug
-        s.append_path "#{Dir.pwd}/#{Wedge.config.app_dir}"
-      }}
+    attr_reader :skip_call
 
+    def initialize(app = false, settings = false, skip_call = false)
+      if settings
+        case settings
+        when Proc
+          Wedge.config.instance_eval &settings
+        else
+          settings.each { |k, v| Wedge.config.send "#{k}=", v }
+        end
 
-      if Wedge.config.debug
-        @opal[:sprockets]   = @opal[:server].sprockets
-        @opal[:maps_prefix] = "#{Wedge.config.assets_url}/__OPAL_SOURCE_MAPS__"
-        @opal[:maps_app]    = Opal::SourceMapServer.new @opal[:sprockets], @opal[:maps_prefix]
+        @opal  = { server: Wedge::Opal::Server.new { |s|
+          s.prefix = Wedge.config.assets_url
+          s.debug  = Wedge.config.debug
+          s.append_path "#{Dir.pwd}/#{Wedge.config.app_dir}"
+        }}
 
-        Wedge::Opal::Sprockets::SourceMapHeaderPatch.inject! @opal[:maps_prefix]
+        if Wedge.config.debug
+          @opal[:sprockets]   = @opal[:server].sprockets
+          @opal[:maps_prefix] = "#{Wedge.config.assets_url}/__OPAL_SOURCE_MAPS__"
+          @opal[:maps_app]    = Opal::SourceMapServer.new @opal[:sprockets], @opal[:maps_prefix]
+
+          Wedge::Opal::Sprockets::SourceMapHeaderPatch.inject! @opal[:maps_prefix]
+        end
       end
 
-      case settings
-      when Proc
-        Wedge.config.instance_eval &settings
-      else
-        settings.each { |k, v| Wedge.config.send "#{k}=", v }
-      end
+      @app       = app
+      @scope     = self.class.scope
+      @skip_call = skip_call
     end
 
     def call(env)
-      responder = Responder.new(@app, @opal, @scope, env)
+      responder = Responder.new(@app, @opal, @scope, @skip_call, env)
       responder.respond
     end
 
     class << self
-      attr_accessor :scope
+      attr_accessor :scope, :skip_call
 
       def scope! scope
         klass = Class.new(self)
@@ -46,19 +51,22 @@ class Wedge
     end
 
     class Responder
-      attr_reader :opal, :scope
+      attr_reader :opal, :scope, :skip_call
       attr_accessor :app, :env, :wedge_path, :extension
 
-      def initialize(app, opal, scope, env)
-        @app = app; @opal = opal; @scope = (scope || self); @env = env
+      def initialize(app, opal, scope, skip_call, env)
+        @app = app; @opal = opal; @scope = (scope || self); @skip_call = skip_call; @env = env
       end
 
       def respond
         if path =~ Wedge.assets_url_regex
           @wedge_path, @extension = $1, $2
-          body, headers, status = [], {}, 200
 
           if extension == 'call'
+            return response.finish if skip_call
+
+            body, headers, status = [], {}, 200
+
             body_data = request.body.read
             data      = request.params
 
@@ -106,7 +114,7 @@ class Wedge
                 @opal[:maps_app].call env
               else
                 e = env.deep_dup
-                e['PATH_INFO'] = env['PATH_INFO'].gsub /#{Wedge.config.assets_url}\//, ''
+                e['PATH_INFO'] = env['PATH_INFO'].sub "#{Wedge.config.assets_url}/", ''
                 @opal[:sprockets].call e
               end
             else
