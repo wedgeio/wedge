@@ -120,7 +120,7 @@ class Wedge
         #                                when the validation fails.
         def assert_format(att, format, error = [att, :format])
           if !send(att).to_s.empty?
-            assert(_attributes.send(att).to_s.match(format), error)
+            assert(atts.send(att).to_s.match(format), error)
           end
         end
 
@@ -196,12 +196,12 @@ class Wedge
         end
 
         def assert_member(att, set, err = [att, :not_valid])
-          assert(set.include?(_attributes.send(att)), err)
+          assert(set.include?(atts.send(att)), err)
         end
 
         def assert_length(att, range, error = [att, :not_in_range])
           if !send(att).to_s.empty?
-            val = _attributes.send(att).to_s
+            val = atts.send(att).to_s
             assert range.include?(val.length), error
           end
         end
@@ -234,7 +234,7 @@ class Wedge
         # @param [Array<Symbol, Symbol>] error The error that should be returned
         #                                when the validation fails.
         def assert_equal(att, value, error = [att, :not_equal])
-          assert value === _attributes.send(att), error
+          assert value === atts.send(att), error
         end
 
         # The grand daddy of all assertions. If you want to build custom

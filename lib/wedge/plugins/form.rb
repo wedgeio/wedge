@@ -9,6 +9,8 @@ class Wedge
       include Methods
       include Validations
       include Render
+      include Enumerable
+      extend Forwardable
 
       # This allows us to call super
       module Delegates
@@ -310,6 +312,9 @@ class Wedge
           end
         end
       end
+
+      # define #each
+      def_delegators :attributes, :each
     end
   end
 end
