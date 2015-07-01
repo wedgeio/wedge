@@ -110,7 +110,7 @@ class Wedge
                 # options
                 { _nested: true }.merge(att_options)
               ])
-            elsif att_options.key? :default
+            elsif att_options.key?(:default) || _form.respond_to?("default_#{att}")
               send("#{att}=", default, true)
             end
           end
@@ -270,7 +270,7 @@ class Wedge
       end
 
       def _keys
-        (_atts_keys + _with_atts).reject { |k| _without_atts.include? k }
+        ((_options[:atts] || _accessors) + _with_atts).reject { |k| _without_atts.include? k }
       end
 
       def _accessors
@@ -304,8 +304,6 @@ class Wedge
           _options[:_model_attributes] = for_model
 
           _keys.each do |att|
-            next unless _accessors.include? att.to_sym
-
             opts = _accessor_options[att]
             if _atts.can_read?(att) && (!opts[:hidden] || opts[:hidden].is_a?(Proc) && !self.instance_exec(&opts[:hidden]))
               is_form   = opts[:form]
