@@ -244,7 +244,7 @@ class Wedge
 
         atts.each do |key, val|
           # grab the original key if alias is given
-          key = _aliases.invert[key] || key
+          _atts_keys << (key = _aliases.invert[key] || key)
 
           next if (_accessor_options[key] || {})[:form]
 
@@ -254,6 +254,22 @@ class Wedge
             send(accessor, val)
           end
         end
+      end
+
+      def _atts_keys
+        @_atts_keys ||= []
+      end
+
+      def _with_atts
+        _accessor_options[:with_atts] || []
+      end
+
+      def _without_atts
+        _accessor_options[:without_atts] || []
+      end
+
+      def _keys
+        (_atts_keys + _with_atts).reject { |k| _without_atts.include? k }
       end
 
       def _accessors
@@ -286,7 +302,7 @@ class Wedge
           _options[:_attributes]       = true
           _options[:_model_attributes] = for_model
 
-          _accessors.each do |att|
+          _keys.each do |att|
             opts = _accessor_options[att]
             if _atts.can_read?(att) && (!opts[:hidden] || opts[:hidden].is_a?(Proc) && !self.instance_exec(&opts[:hidden]))
               is_form   = opts[:form]

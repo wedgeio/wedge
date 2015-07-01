@@ -3,11 +3,20 @@ class Wedge
     def initialize(app = false, settings = {}, scope = false)
       @app   = app
       @scope = scope || self.class.scope
-      @opal  = Wedge::Opal::Server.new { |s|
+      @opal  = { server: Wedge::Opal::Server.new { |s|
         s.prefix = Wedge.config.assets_url
         s.debug  = Wedge.config.debug
         s.append_path "#{Dir.pwd}/#{Wedge.config.app_dir}"
-      }
+      }}
+
+
+      if Wedge.config.debug
+        @opal[:sprockets]   = @opal[:server].sprockets
+        @opal[:maps_prefix] = "#{Wedge.config.assets_url}/__OPAL_SOURCE_MAPS__"
+        @opal[:maps_app]    = Opal::SourceMapServer.new @opal[:sprockets], @opal[:maps_prefix]
+
+        Wedge::Opal::Sprockets::SourceMapHeaderPatch.inject! @opal[:maps_prefix]
+      end
 
       case settings
       when Proc
@@ -92,7 +101,17 @@ class Wedge
 
             [status, headers, body]
           else
-            @opal.call env
+            if Wedge.config.debug
+              if path[@opal[:maps_prefix]]
+                @opal[:maps_app].call env
+              else
+                e = env.deep_dup
+                e['PATH_INFO'] = env['PATH_INFO'].gsub /#{Wedge.config.assets_url}\//, ''
+                @opal[:sprockets].call e
+              end
+            else
+              @opal[:server].call env
+            end
           end
         else
           response.finish

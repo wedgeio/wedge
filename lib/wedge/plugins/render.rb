@@ -102,7 +102,7 @@ class Wedge
         when :not_equal
           'Password does not match.'
         else
-          !error[/\s/] ? error.to_s.gsub(/_/, ' ').titleize : error
+          !error.to_s[/\s/] ? error.to_s.gsub(/_/, ' ').titleize : error
         end
       end
     end
