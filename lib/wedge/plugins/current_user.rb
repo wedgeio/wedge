@@ -14,8 +14,7 @@ class Wedge
         %w'ability_list current_user'.each do |type|
           config.compile_str ||= ''
           path = Wedge.config.component_class[:"#{type}"].config.path
-          code = File.read("#{Dir.pwd}/#{Wedge.config.app_dir}/#{path}.rb")
-          config.compile_str << Opal.original_compile("require 'wedge/plugins/#{type}'; #{code}")
+          config.compile_str << Wedge.javascript(path)
         end if for_client
       end
 
