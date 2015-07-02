@@ -16,7 +16,7 @@ class Playground
 
       head.add_child assets [:css, :default]
       html.add_child assets [:js, :default]
-      html.add_child Wedge.script_tag
+      html.add_child Wedge.script_tag 'wedge'
 
       inline_tags.each do |tag|
         html.add_child tag

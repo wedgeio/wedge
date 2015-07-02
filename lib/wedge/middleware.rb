@@ -11,24 +11,25 @@ class Wedge
           settings.each { |k, v| Wedge.config.send "#{k}=", v }
         end
 
-        @opal  = { server: Wedge::Opal::Server.new { |s|
+        Wedge.config.opal = { server: Wedge::Opal::Server.new { |s|
           s.prefix = Wedge.config.assets_url
           s.debug  = Wedge.config.debug
           s.append_path "#{Dir.pwd}/#{Wedge.config.app_dir}"
         }}
 
         if Wedge.config.debug
-          @opal[:sprockets]   = @opal[:server].sprockets
-          @opal[:maps_prefix] = "#{Wedge.config.assets_url}/__OPAL_SOURCE_MAPS__"
-          @opal[:maps_app]    = Opal::SourceMapServer.new @opal[:sprockets], @opal[:maps_prefix]
+          Wedge.config.opal[:sprockets]   = Wedge.config.opal[:server].sprockets
+          Wedge.config.opal[:maps_prefix] = "#{Wedge.config.assets_url}/__OPAL_SOURCE_MAPS__"
+          Wedge.config.opal[:maps_app]    = Opal::SourceMapServer.new Wedge.config.opal[:sprockets], Wedge.config.opal[:maps_prefix]
 
-          Wedge::Opal::Sprockets::SourceMapHeaderPatch.inject! @opal[:maps_prefix]
+          Wedge::Opal::Sprockets::SourceMapHeaderPatch.inject! Wedge.config.opal[:maps_prefix]
         end
       end
 
       @app       = app
       @scope     = self.class.scope
       @skip_call = !self.class.skip_call.nil?? self.class.skip_call : Wedge.config.skip_call_middleware
+      @opal      = Wedge.config.opal
     end
 
     def call(env)
@@ -88,7 +89,13 @@ class Wedge
             method_called = data.delete(:__wedge_method__)
             method_args   = data.delete(:__wedge_args__)
 
-            if method_args == '__wedge_data__' && data
+
+            if wedge_path == 'wedge/list_assets'
+              res = {
+                urls: Wedge.get_asset_urls(data[:path_name]),
+                code: Wedge::Opal::Processor.load_asset_code(Wedge.config.opal[:server].sprockets, data[:path_name])
+              }
+            elsif method_args == '__wedge_data__' && data
               method_args = [data]
               res         = Wedge.scope!(scope, method_called)[name].send(method_called, *method_args) || ''
             else

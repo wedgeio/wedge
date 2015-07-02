@@ -36,7 +36,8 @@ class Wedge
         server_methods: [],
         initialize_args: [],
         plugins: [],
-        allowed_client_data: %w(name path method_args method_called store tmpl key cache_assets assets_key assets_url assets_url_with_host)
+        opal: {},
+        allowed_client_data: %w(debug name path method_args method_called store tmpl key cache_assets assets_key assets_url assets_url_with_host)
       }.merge(opts))
     end
 

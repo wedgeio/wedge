@@ -196,7 +196,6 @@ class Wedge
                     'X-CSRF-TOKEN' => Element.find('meta[name=_csrf]').attr('content'),
                     'X-WEDGE-METHOD-REQUEST' => meth
                   },
-                  async: false,
                   payload: payload) do |response|
 
                     # We set the new csrf token
