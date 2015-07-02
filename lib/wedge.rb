@@ -60,46 +60,46 @@ class Wedge
       DOM.new html
     end
 
-    # def script_tag
-    #   # note: ?body=1 is a hack for sprockets to make source maps work # correctly.
-    #   "<script src='#{assets_url_with_host}/wedge.js#{Wedge.config.debug ? '?body=1' : ''}' type='text/javascript'></script>"
-    # end
-
-    def script_tag name = 'wedge'
-      sprockets = Wedge.config.opal[:server].sprockets
-      prefix = Wedge.config.opal[:server].prefix
-      asset = sprockets[name]
-      raise "Cannot find asset: #{name}" if asset.nil?
-      scripts = []
-
-      get_asset_urls(name).each do |url|
-        scripts << %{<script src="#{url}"></script>}
-      end
-
-      scripts << %{<script>#{Wedge::Opal::Processor.load_asset_code(sprockets, name)}</script>}
-
-      scripts.join "\n"
-    end
-
-    def get_asset_urls name
-      sprockets = Wedge.config.opal[:server].sprockets
-      prefix = Wedge.config.opal[:server].prefix
-      asset = sprockets[name]
-      raise "Cannot find asset: #{name}" if asset.nil?
-      urls = []
-
-      if Wedge.config.opal[:server].debug
-        asset.to_a.map do |dependency|
-          urls << %{#{prefix}/#{dependency.logical_path}?body=1}
-        end
-      else
-        urls << %{#{prefix}/#{name}.js}
-      end
-
-      urls
-    end
-
     unless RUBY_ENGINE == 'opal'
+      # def script_tag
+      #   # note: ?body=1 is a hack for sprockets to make source maps work # correctly.
+      #   "<script src='#{assets_url_with_host}/wedge.js#{Wedge.config.debug ? '?body=1' : ''}' type='text/javascript'></script>"
+      # end
+
+      def script_tag name = 'wedge'
+        sprockets = Wedge.config.opal[:server].sprockets
+        prefix = Wedge.config.opal[:server].prefix
+        asset = sprockets[name]
+        raise "Cannot find asset: #{name}" if asset.nil?
+        scripts = []
+
+        get_asset_urls(name).each do |url|
+          scripts << %{<script src="#{url}"></script>}
+        end
+
+        scripts << %{<script>#{Wedge::Opal::Processor.load_asset_code(sprockets, name)}</script>}
+
+        scripts.join "\n"
+      end
+
+      def get_asset_urls name
+        sprockets = Wedge.config.opal[:server].sprockets
+        prefix = Wedge.config.opal[:server].prefix
+        asset = sprockets[name]
+        raise "Cannot find asset: #{name}" if asset.nil?
+        urls = []
+
+        if Wedge.config.opal[:server].debug
+          asset.to_a.map do |dependency|
+            urls << %{#{prefix}/#{dependency.logical_path}?body=1}
+          end
+        else
+          urls << %{#{prefix}/#{name}.js}
+        end
+
+        urls
+      end
+
       def javascript_cache
         @javascript_cache ||= IndifferentHash.new
       end
