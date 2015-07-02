@@ -9,26 +9,28 @@ require 'bundler'
 require 'bundler/gem_tasks'
 require 'bundler/setup'
 
-require 'config/boot'
-require 'tilt/erubis'
-require 'opal/rspec/rake_task'
+if current_task['default'] || current_task['test'] || current_task[/:rspec/]
+  require 'config/boot'
+  require 'tilt/erubis'
+  require 'opal/rspec/rake_task'
 
-Opal.append_path File.expand_path('../lib', __FILE__)
-Opal.append_path File.expand_path('../playground/app', __FILE__)
-Opal.append_path File.expand_path('../playground/public', __FILE__)
+  Opal.append_path File.expand_path('../lib', __FILE__)
+  Opal.append_path File.expand_path('../playground/app', __FILE__)
+  Opal.append_path File.expand_path('../playground/public', __FILE__)
 
-Opal::RSpec::RakeTask.new('opal:rspec', Playground) do |s|
-  s.index_path = 'spec/index.html.erb'
-end
+  Opal::RSpec::RakeTask.new('opal:rspec', Playground) do |s|
+    s.index_path = 'spec/index.html.erb'
+  end
 
-task default: [:test]
+  task default: [:test]
 
-require 'rspec/core/rake_task'
-RSpec::Core::RakeTask.new('ruby:rspec')
+  require 'rspec/core/rake_task'
+  RSpec::Core::RakeTask.new('ruby:rspec')
 
-task :test do
-  puts "--------------------------\nRun specs in Ruby\n--------------------------"
-  Rake::Task['ruby:rspec'].invoke
-  puts "--------------------------\nRun specs in Opal\n--------------------------"
-  Rake::Task['opal:rspec'].invoke
+  task :test do
+    puts "--------------------------\nRun specs in Ruby\n--------------------------"
+    Rake::Task['ruby:rspec'].invoke
+    puts "--------------------------\nRun specs in Opal\n--------------------------"
+    Rake::Task['opal:rspec'].invoke
+  end
 end
