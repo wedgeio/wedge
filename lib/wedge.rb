@@ -65,7 +65,7 @@ class Wedge
     #   "<script src='#{assets_url_with_host}/wedge.js#{Wedge.config.debug ? '?body=1' : ''}' type='text/javascript'></script>"
     # end
 
-    def script_tag name
+    def script_tag name = 'wedge'
       sprockets = Wedge.config.opal[:server].sprockets
       prefix = Wedge.config.opal[:server].prefix
       asset = sprockets[name]
