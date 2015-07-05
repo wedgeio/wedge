@@ -3,7 +3,7 @@ class Wedge
     module Render
       def display_errors options = {}, &block
         dom = options.delete(:dom) || _options[:dom]
-        d_errors = errors
+        d_errors = errors.deep_dup
 
         if override_errors = options[:override_errors]
           d_errors = override_errors
@@ -20,15 +20,13 @@ class Wedge
         d_errors.each do |key, error|
           d_keys = (keys.dup << key)
 
-          error = error.first
-
-          if error.is_a?(Hash)
+          if error.is_a?(IndifferentHash)
             d_options = options.dup
             d_options[:keys] = d_keys
-            d_options[:override_errors] = d_errors[key].first
+            d_options[:override_errors] = d_errors[key]
 
             display_errors d_options, &block
-          elsif !block_given? || block.call(d_keys, error) == false
+          elsif !block_given? || block.call(d_keys, error.first) == false
             name = d_keys.each_with_index.map do |field, i|
               i != 0 ? "[#{field}]" : field
             end.join
@@ -43,7 +41,7 @@ class Wedge
               field_error_dom = DOM.new('<span class="field-error"><span>')
             end
 
-            field_error_dom.html _error_name(key, error)
+            field_error_dom.html _error_name(key, error.first)
 
             field = dom.find("[name='#{name}']")
             field.before field_error_dom.dom

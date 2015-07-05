@@ -124,8 +124,27 @@ class Wedge
             val = case type
             when 'Integer'
               val.to_i
+            when 'Float'
+              val.to_f
             when 'String'
               val.to_s
+            # issue: opal: https://github.com/opal/opal/issues/982
+            # when 'Numeric'
+            #   # if we had support for bigdecimal in opal
+            #   # num = BigDecimal.new(val.to_s)
+            #   #
+            #   # if num.frac == 0
+            #   #   num.to_i
+            #   # else
+            #   #   num.to_f
+            #   # end
+            #   if val.to_s == val.to_s.to_i.to_s
+            #     val.to_s.to_i
+            #   elsif val.to_s == val.to_s.to_f.to_s
+            #     val.to_s.to_f
+            #   else
+            #     val
+            #   end
             when 'Symbol'
               val.to_sym
             end
