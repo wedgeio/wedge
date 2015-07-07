@@ -333,7 +333,7 @@ class Wedge
               is_form   = opts[:form]
               key       = for_model ? _aliases[att] || att : att
               key       = (for_model && is_form)? "#{key}_attributes" : key
-              atts[key] = is_form ? send(att).send(for_model ? 'model_attributes' : 'attributes') : send(att)
+              atts[key] = is_form ? send(att).send(for_model ? 'model_attributes' : 'attributes') : (for_model ? _atts.send(att) : send(att))
             end
           end
         end
