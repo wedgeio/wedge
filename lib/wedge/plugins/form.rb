@@ -164,11 +164,11 @@ class Wedge
 
           if opts.is_a? Hash
             default_opts.merge! opts
+            attrs << default_opts.merge!(opts)
           else
-            opts = default_opts
+            attrs << opts
+            attrs << default_opts
           end
-
-          attrs << opts
 
           attr_accessor(*attrs, &block)
         end
