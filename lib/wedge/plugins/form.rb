@@ -120,7 +120,7 @@ class Wedge
 
         def process_value val, opts
           # Make sure the value is the correct type
-          if type = opts[:type]
+          if !val.nil? && type = opts[:type]
             val = case type
             when 'Integer'
               val.to_i
