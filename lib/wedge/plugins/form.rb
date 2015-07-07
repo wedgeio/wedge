@@ -161,7 +161,12 @@ class Wedge
         def attr_reader(*attrs, &block)
           default_opts = { read_only: true }
           opts = attrs.pop
-          opts.merge!(default_opts) if opts.is_a? Hash
+
+          if opts.is_a? Hash
+            default_opts.merge! opts
+          else
+            opts = default_opts
+          end
 
           attrs << opts
 
