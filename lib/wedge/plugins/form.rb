@@ -323,7 +323,7 @@ class Wedge
           _options[:_model_attributes] = for_model
 
           _keys.each do |att|
-            opts = _accessor_options[att]
+            opts = _accessor_options[att].indifferent
             if ((for_model && !opts[:read_only]) || !for_model) && _atts.can_read?(att) && (!opts[:hidden] || opts[:hidden].is_a?(Proc) && !self.instance_exec(&opts[:hidden]))
               is_form   = opts[:form]
               key       = for_model ? _aliases[att] || att : att
