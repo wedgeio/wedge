@@ -267,6 +267,10 @@ class Wedge
         @_atts    = Atts.new atts, _accessors, _aliases, _accessor_options
         @_atts    = @_atts.set_defaults self
 
+        _set_values atts
+      end
+
+      def _set_values atts
         atts.each do |key, val|
           # grab the original key if alias is given
           _atts_keys << (key = _aliases.invert[key] || key)

@@ -75,6 +75,11 @@ class Wedge
           _errors.empty?
         end
 
+        def valid atts
+          _set_values atts
+          valid?
+        end
+
         # Base validate implementation. Override this method in subclasses.
         def validate
         end
@@ -119,8 +124,8 @@ class Wedge
         # @param [Array<Symbol, Symbol>] error The error that should be returned
         #                                when the validation fails.
         def assert_format(att, format, error = [att, :format])
-          if !send(att).to_s.empty?
-            assert(atts.send(att).to_s.match(format), error)
+          if !_atts.send(att).to_s.empty?
+            assert(_atts.send(att).to_s.match(format), error)
           end
         end
 
@@ -139,7 +144,7 @@ class Wedge
             if att_options.key? :form
               assert_form att, error
             else
-              assert(!send(att).to_s.empty?, error)
+              assert(!_atts.send(att).to_s.empty?, error)
             end
           end
         end
@@ -148,7 +153,7 @@ class Wedge
           att_options = _accessor_options[att].deep_dup
           form_name   = att_options.delete :form
 
-          f = wedge("#{form_name}_form", send(att).attributes, att_options)
+          f = wedge("#{form_name}_form", _atts.send(att).attributes, att_options)
           assert(f.valid?, [att, f._errors])
         end
 
@@ -162,7 +167,7 @@ class Wedge
           # want to validate presents if they validate for numeric. if they
           # validate for numeric.
           # if assert_present(att, error)
-          if !send(att).to_s.empty?
+          if !_atts.send(att).to_s.empty?
             if client?
               assert_format(att, /^\-?\d+$/, error)
             else
@@ -178,7 +183,7 @@ class Wedge
         end
 
         def assert_url(att, error = [att, :not_url])
-          if !send(att).to_s.empty?
+          if !_atts.send(att).to_s.empty?
             assert_format(att, URL, error)
           end
         end
@@ -190,18 +195,18 @@ class Wedge
         end
 
         def assert_email(att, error = [att, :not_email])
-          if !send(att).to_s.empty?
+          if !_atts.send(att).to_s.empty?
             assert_format(att, EMAIL, error)
           end
         end
 
         def assert_member(att, set, err = [att, :not_valid])
-          assert(set.include?(atts.send(att)), err)
+          assert(set.include?(_atts.send(att)), err)
         end
 
         def assert_length(att, range, error = [att, :not_in_range])
-          if !send(att).to_s.empty?
-            val = atts.send(att).to_s
+          if !_atts.send(att).to_s.empty?
+            val = _atts.send(att).to_s
             assert range.include?(val.length), error
           end
         end
@@ -234,7 +239,7 @@ class Wedge
         # @param [Array<Symbol, Symbol>] error The error that should be returned
         #                                when the validation fails.
         def assert_equal(att, value, error = [att, :not_equal])
-          assert value === atts.send(att), error
+          assert value === _atts.send(att), error
         end
 
         # The grand daddy of all assertions. If you want to build custom
