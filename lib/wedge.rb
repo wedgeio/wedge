@@ -1,5 +1,5 @@
-require 'wedge/opal'
 require 'wedge/version'
+require 'wedge/opal'
 require 'wedge/utilis/indifferent_hash'
 require 'wedge/utilis/hash'
 require 'wedge/utilis/blank'
