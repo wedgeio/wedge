@@ -76,7 +76,7 @@ class Wedge
         end
 
         def valid atts
-          _set_values atts
+          _set_atts atts
           valid?
         end
 

@@ -267,20 +267,22 @@ class Wedge
         @_atts    = Atts.new atts, _accessors, _aliases, _accessor_options
         @_atts    = @_atts.set_defaults self
 
-        _set_values atts
+        _set_atts atts
       end
 
-      def _set_values atts
+      def _set_atts atts
         atts.each do |key, val|
           # grab the original key if alias is given
           _atts_keys << (key = _aliases.invert[key] || key)
 
-          next if (_accessor_options[key] || {})[:form]
+          if (_accessor_options[key] || {})[:form]
+            send(key)._set_atts val
+          else
+            accessor = "#{key}="
 
-          accessor = "#{key}="
-
-          if respond_to?(accessor)
-            send(accessor, val)
+            if respond_to?(accessor)
+              send(accessor, val)
+            end
           end
         end
       end
