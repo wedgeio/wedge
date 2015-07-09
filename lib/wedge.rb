@@ -1,3 +1,5 @@
+require 'opal'
+require 'opal-jquery'
 require 'wedge/version'
 require 'wedge/opal'
 require 'wedge/utilis/indifferent_hash'

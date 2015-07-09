@@ -1,6 +1,3 @@
-require 'opal'
-require 'opal-jquery'
-
 unless RUBY_ENGINE == 'opal'
   module Opal
     class Builder
