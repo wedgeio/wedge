@@ -2,6 +2,13 @@ class Roda
   module RodaPlugins
     class WedgePlugin
       def self.configure(app, opts = false, &block)
+        case opts || block
+        when Proc
+          Wedge.config.instance_eval &opts
+        else
+          opts.each { |k, v| Wedge.config.send "#{k}=", v }
+        end
+
         app.use Wedge::Middleware, opts || block
       end
 
