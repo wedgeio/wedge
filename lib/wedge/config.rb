@@ -21,6 +21,7 @@ class Wedge
         app_dir: 'app',
         assets_url: '/assets/wedge',
         assets_key: nil,
+        assets_headers: {},
         cache_assets: false,
         is_plugin: false,
         compile_str: false,
