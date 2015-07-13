@@ -12,14 +12,14 @@ class Wedge
         end
 
         Wedge.config.opal = { server: Wedge::Opal::Server.new { |s|
-          s.prefix = Wedge.assets_url
+          s.prefix = Wedge.assets_url_with_host
           s.debug  = Wedge.config.debug
           s.append_path "#{Dir.pwd}/#{Wedge.config.app_dir}"
         }}
 
         if Wedge.config.debug
           Wedge.config.opal[:sprockets]   = Wedge.config.opal[:server].sprockets
-          Wedge.config.opal[:maps_prefix] = "#{Wedge.config.assets_url}/__OPAL_SOURCE_MAPS__"
+          Wedge.config.opal[:maps_prefix] = "#{Wedge.assets_url_with_host}/__OPAL_SOURCE_MAPS__"
           Wedge.config.opal[:maps_app]    = Opal::SourceMapServer.new Wedge.config.opal[:sprockets], Wedge.config.opal[:maps_prefix]
 
           Wedge::Opal::Sprockets::SourceMapHeaderPatch.inject! Wedge.config.opal[:maps_prefix]
@@ -122,7 +122,7 @@ class Wedge
                 @opal[:maps_app].call env
               else
                 e = env.deep_dup
-                e['PATH_INFO'] = env['PATH_INFO'].sub "#{Wedge.config.assets_url}/", ''
+                e['PATH_INFO'] = env['PATH_INFO'].sub "#{Wedge.assets_url_with_host}/", ''
                 @opal[:sprockets].call e
               end
             else
