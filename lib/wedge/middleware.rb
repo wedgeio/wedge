@@ -35,6 +35,8 @@ class Wedge
     def call(env)
       responder = Responder.new(@app, @opal, @scope, @skip_call, env)
       responder.respond
+    ensure
+      Wedge::Store.clear!
     end
 
     class << self
