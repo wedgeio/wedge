@@ -70,7 +70,6 @@ class Wedge
 
       def script_tag name = 'wedge'
         sprockets = Wedge.config.opal[:server].sprockets
-        prefix = Wedge.config.opal[:server].prefix
         asset = sprockets[name]
         raise "Cannot find asset: #{name}" if asset.nil?
         scripts = []
@@ -86,7 +85,7 @@ class Wedge
 
       def get_asset_urls name
         sprockets = Wedge.config.opal[:server].sprockets
-        prefix = Wedge.config.opal[:server].prefix
+        prefix = Wedge.assets_url_with_host
         asset = sprockets[name]
         raise "Cannot find asset: #{name}" if asset.nil?
         urls = []
