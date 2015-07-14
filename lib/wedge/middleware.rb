@@ -91,7 +91,6 @@ class Wedge
             method_called = data.delete(:__wedge_method__)
             method_args   = data.delete(:__wedge_args__)
 
-
             if wedge_path == 'wedge/list_assets'
               res = {
                 urls: Wedge.get_asset_urls(data[:path_name]),
