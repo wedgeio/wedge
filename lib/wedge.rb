@@ -16,11 +16,13 @@ unless RUBY_ENGINE == 'opal'
   require 'wedge/utilis/nokogiri'
   require 'wedge/middleware'
 end
+require 'wedge/store'
 require 'wedge/html'
 require 'wedge/dom'
 require 'wedge/events'
 require 'wedge/config'
 require 'wedge/component'
+require 'wedge/railtie' if RUBY_ENGINE == 'RUBY' && defined?(Rails::Railtie)
 
 class Wedge
   include Methods

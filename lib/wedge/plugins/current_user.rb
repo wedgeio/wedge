@@ -20,7 +20,7 @@ class Wedge
 
       module InstanceMethods
         def wedge_current_user
-          @wedge_current_user ||= Wedge[:current_user, wedge(:current_user_plugin).get_current_user]
+          Store[:current_user] ||= Wedge[:current_user, wedge(:current_user_plugin).get_current_user]
         end
         alias_method :current_user, :wedge_current_user
       end
