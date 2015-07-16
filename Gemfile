@@ -11,7 +11,7 @@ gem 'better_errors'
 gem 'slim'
 gem 'sass'
 gem 'thin'
-gem 'roda', '2.4.0'
+gem 'roda', '2.5.0'
 gem 'pry-rescue'
 gem 'pry-stack_explorer'
 # issue: https://github.com/copiousfreetime/hitimes/issues/17

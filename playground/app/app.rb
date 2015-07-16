@@ -44,7 +44,7 @@ class Playground
 
   plugin :assets, {
     path: "#{APP_ROOT}/../", css_dir: '', js_dir: '', group_subdirs: false,
-    # js_opts: { builder: builder }
+    js_opts: { builder: Wedge::Opal::Server.new },
     css: {
       default: [
         'public/vendor/normalize-css/normalize.css',
@@ -55,7 +55,8 @@ class Playground
     js: {
       default: [
         'public/vendor/jquery/jquery.js',
-        'bower_components/fine-uploader/_build/s3.jquery.fine-uploader.js'
+        'bower_components/fine-uploader/_build/s3.jquery.fine-uploader.js',
+        'wedge/wedge.rb'
       ],
     }
   }
