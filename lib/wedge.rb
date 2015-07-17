@@ -36,6 +36,31 @@ class Wedge
 
     delegate [:plugin] => :config
 
+    def load_settings settings
+      return unless settings
+
+      case settings
+      when Proc
+        Wedge.config.instance_eval &settings
+      else
+        settings.each { |k, v| Wedge.config.send "#{k}=", v }
+      end
+
+      Wedge.config.opal = { server: Wedge::Opal::Server.new { |s|
+        s.prefix = Wedge.assets_url
+        s.debug  = Wedge.config.debug
+        s.append_path "#{Dir.pwd}/#{Wedge.config.app_dir}"
+      }}
+
+      if Wedge.config.debug
+        Wedge.config.opal[:sprockets]   = Wedge.config.opal[:server].sprockets
+        Wedge.config.opal[:maps_prefix] = "#{Wedge.assets_url}/__OPAL_SOURCE_MAPS__"
+        Wedge.config.opal[:maps_app]    = Opal::SourceMapServer.new Wedge.config.opal[:sprockets], Wedge.config.opal[:maps_prefix]
+
+        Wedge::Opal::Sprockets::SourceMapHeaderPatch.inject! Wedge.config.opal[:maps_prefix]
+      end
+    end
+
     def assets_url
       url = config.assets_url.gsub(%r{^(http(|s)://[^\/]*\/|\/)}, '/')
       "#{url}#{config.cache_assets ? "/#{config.assets_key}" : ''}"

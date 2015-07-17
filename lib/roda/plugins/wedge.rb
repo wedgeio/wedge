@@ -1,8 +1,12 @@
 class Roda
   module RodaPlugins
     class WedgePlugin
-      def self.configure(app, opts = false, &block)
-        app.use Wedge::Middleware, opts || block
+      def self.configure(app, settings = false, &block)
+        if settings[:skip_call_middleware]
+          Wedge.load_settings settings
+        else
+          app.use Wedge::Middleware, opts || block
+        end
       end
 
       module ClassMethods

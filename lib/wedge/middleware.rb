@@ -3,28 +3,7 @@ class Wedge
     attr_reader :skip_call
 
     def initialize(app = false, settings = false)
-      if settings
-        case settings
-        when Proc
-          Wedge.config.instance_eval &settings
-        else
-          settings.each { |k, v| Wedge.config.send "#{k}=", v }
-        end
-
-        Wedge.config.opal = { server: Wedge::Opal::Server.new { |s|
-          s.prefix = Wedge.assets_url
-          s.debug  = Wedge.config.debug
-          s.append_path "#{Dir.pwd}/#{Wedge.config.app_dir}"
-        }}
-
-        if Wedge.config.debug
-          Wedge.config.opal[:sprockets]   = Wedge.config.opal[:server].sprockets
-          Wedge.config.opal[:maps_prefix] = "#{Wedge.assets_url}/__OPAL_SOURCE_MAPS__"
-          Wedge.config.opal[:maps_app]    = Opal::SourceMapServer.new Wedge.config.opal[:sprockets], Wedge.config.opal[:maps_prefix]
-
-          Wedge::Opal::Sprockets::SourceMapHeaderPatch.inject! Wedge.config.opal[:maps_prefix]
-        end
-      end
+      Wedge.load_settings settings
 
       @app       = app
       @scope     = self.class.scope
