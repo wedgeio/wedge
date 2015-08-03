@@ -266,7 +266,7 @@ class Wedge
     def create_assets_key
       o = [('a'..'z'), ('A'..'Z')].map { |i| i.to_a }.flatten
       key = (0...50).map { o[rand(o.length)] }.join
-      ::File.open('./.wedge_assets_key', 'wb'){|f| f.write(key) }
+      ::File.open("#{config.app_dir}/.wedge_assets_key", 'wb'){|f| f.write(key) }
     end
 
     def config
@@ -275,7 +275,7 @@ class Wedge
 
         unless RUBY_ENGINE == 'opal'
           args[:path]       = method(:assets_url).source_location.first.sub('/wedge.rb', '')
-          args[:assets_key] = ::File.exist?('./.wedge_assets_key') ? File.read('./.wedge_assets_key') : nil
+          args[:assets_key] = ::File.exist?("#{Config.app_dir}/.wedge_assets_key") ? File.read("#{config.app_dir}/.wedge_assets_key") : nil
         end
 
         Config.new(args)
