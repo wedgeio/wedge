@@ -68,6 +68,15 @@ class Wedge
         # Merge in instance/class methods
         Wedge::Component.send(:include, klass::InstanceMethods) if defined?(klass::InstanceMethods)
         Wedge::Component.extend(klass::ClassMethods) if defined?(klass::ClassMethods)
+
+        if defined? klass::ServerMethods
+          if server?
+            Wedge::Component.send(:include, klass::ServerMethods)
+            Wedge::Component.extend(klass::ServerMethods)
+          end
+
+          Wedge::Component.wedge_on_server klass::ServerMethods
+        end
       end
     end
 

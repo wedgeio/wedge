@@ -68,7 +68,8 @@ class Wedge
             data          = data.indifferent
             name          = data.delete(:__wedge_name__)
             method_called = data.delete(:__wedge_method__)
-            method_args   = data.delete(:__wedge_args__)
+            # no clue why you need to do __wedge_args__[]
+            method_args   = data.delete(:__wedge_args__) || data.delete(:'__wedge_args__[]')
 
             if wedge_path == 'wedge/list_assets'
               res = {

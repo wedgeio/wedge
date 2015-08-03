@@ -122,7 +122,7 @@ class Wedge
       alias_method :dom, :wedge_dom
 
       def wedge_config
-        @wedge_config ||= Config.new klass: self, scope: Wedge.config.scope
+        @wedge_config ||= Config.new klass: self, scope: Wedge.config.scope, plugins: Wedge.config.plugins
       end
       alias_method :config, :wedge_config
 
@@ -143,15 +143,16 @@ class Wedge
         if wedge_config.scope.respond_to?(method, true)
           wedge_config.scope.send method, *args, &block
         else
+          puts method
           super
         end
       end
 
-      def wedge_on_server(&block)
-        if server?
-          m = Module.new(&block)
+      def wedge_on_server(m = false, &block)
+        m ||= Module.new(&block)
 
-          yield
+        if server?
+          yield if block_given?
 
           m.public_instance_methods(false).each do |meth|
             config.server_methods << meth.to_s
@@ -170,8 +171,6 @@ class Wedge
             end
           end
         else
-          m = Module.new(&block)
-
           m.public_instance_methods(false).each do |meth|
             config.server_methods << meth.to_s
 
