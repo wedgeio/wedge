@@ -267,7 +267,7 @@ class Wedge
       o           = [('a'..'z'), ('A'..'Z')].map { |i| i.to_a }.flatten
       @assets_key = (0...50).map { o[rand(o.length)] }.join
       ::FileUtils.mkdir_p(File.dirname('.wedge_assets_key'))
-      ::File.open(".wedge_assets_key", 'wb'){|f| f.write(key) }
+      ::File.open(".wedge_assets_key", 'wb'){|f| f.write(@assets_key) }
     end
 
     def config
