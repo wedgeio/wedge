@@ -50,6 +50,7 @@ class Wedge
         s.prefix = Wedge.assets_url
         s.debug  = Wedge.config.debug
         s.append_path "#{Dir.pwd}/#{Wedge.config.app_dir}"
+        s.headers = Wedge.config.assets_headers
       }}
 
       if Wedge.config.debug
