@@ -263,21 +263,19 @@ class Wedge
       Wedge.trigger_browser_events
     end
 
+    def create_assets_key
+      o = [('a'..'z'), ('A'..'Z')].map { |i| i.to_a }.flatten
+      string = (0...50).map { o[rand(o.length)] }.join
+      File.write '.wedge_assets_key', string
+    end
+
     def config
       @config ||= begin
         args = { component_class: IndifferentHash.new }
 
         unless RUBY_ENGINE == 'opal'
           args[:path]       = method(:assets_url).source_location.first.sub('/wedge.rb', '')
-          args[:assets_key] = begin
-            if defined?(PlatformAPI) && ENV['HEROKU_TOKEN'] && ENV['HEROKU_APP']
-              heroku = PlatformAPI.connect_oauth(ENV['HEROKU_TOKEN'], default_headers: {'Range' => 'version ..; order=desc'})
-              slug_id = heroku.release.list(ENV['HEROKU_APP']).first["slug"]["id"]
-              heroku.slug.info(ENV['HEROKU_APP'], slug_id)["commit"]
-            else
-              `git rev-parse HEAD 2>/dev/null`.to_s.strip
-            end
-          end
+          args[:assets_key] = File.exist?('.wedge_assets_key') ? File.read('.wedge_assets_key') : nil
         end
 
         Config.new(args)
