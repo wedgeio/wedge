@@ -51,7 +51,7 @@ class Wedge
         s.prefix  = Wedge.assets_url
         s.debug   = Wedge.config.debug
         s.headers = Wedge.config.assets_headers
-        s.gzip    = Wedge.config.gzip_headers
+        s.gzip    = Wedge.config.gzip_assets
       }}
 
       if Wedge.config.debug

@@ -142,10 +142,11 @@ unless RUBY_ENGINE == 'opal'
 
             if server.gzip
               require 'zlib'
-              Zlib::GzipWriter.open("#{path}.gz") do |gz|
-                body = gz.write(content)
-              end
+
+              headers['Content-Encoding'] = 'gzip'
+              body = Zlib::Deflate.deflate body
             end
+
             [status, headers.merge(@server.headers), [body]]
           else
             @app.call env
