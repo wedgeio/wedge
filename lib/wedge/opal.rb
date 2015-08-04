@@ -137,6 +137,10 @@ unless RUBY_ENGINE == 'opal'
         def call(env)
           status, headers, body = @app.call env
 
+          headers = {
+            'Content-Type' => 'application/javascript; charset=UTF-8'
+          }.merge headers
+
           if env['PATH_INFO'][@server.prefix]
             status, headers, body = @app.call env
 
