@@ -47,10 +47,11 @@ class Wedge
       end
 
       Wedge.config.opal = { server: Wedge::Opal::Server.new { |s|
-        s.prefix = Wedge.assets_url
-        s.debug  = Wedge.config.debug
         s.append_path "#{Dir.pwd}/#{Wedge.config.app_dir}"
+        s.prefix  = Wedge.assets_url
+        s.debug   = Wedge.config.debug
         s.headers = Wedge.config.assets_headers
+        s.gzip    = Wedge.config.gzip_headers
       }}
 
       if Wedge.config.debug

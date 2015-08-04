@@ -72,7 +72,7 @@ unless RUBY_ENGINE == 'opal'
     end
 
     class Server
-      attr_accessor :headers
+      attr_accessor :headers, :gzip
 
       def initialize debug_or_options = {}
         unless Hash === debug_or_options
@@ -84,6 +84,7 @@ unless RUBY_ENGINE == 'opal'
         end
 
         @headers     = {}
+        @gzip        = false
         @use_index   = true
         @public_root = nil
         @public_urls = ['/']
@@ -95,10 +96,6 @@ unless RUBY_ENGINE == 'opal'
 
         yield self if block_given?
         create_app
-      end
-
-      def headers
-        @headers
       end
 
       def create_app
@@ -142,6 +139,13 @@ unless RUBY_ENGINE == 'opal'
 
           if env['PATH_INFO'][@server.prefix]
             status, headers, body = @app.call env
+
+            if server.gzip
+              require 'zlib'
+              Zlib::GzipWriter.open("#{path}.gz") do |gz|
+                body = gz.write(content)
+              end
+            end
             [status, headers.merge(@server.headers), [body]]
           else
             @app.call env
