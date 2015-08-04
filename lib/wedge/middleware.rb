@@ -115,14 +115,14 @@ class Wedge
                 require 'zlib'
 
                 headers['Content-Encoding'] = 'gzip'
+                headers.delete 'Content-Length'
 
                 wio = StringIO.new("")
                 w_gz = Zlib::GzipWriter.new(wio)
                 w_gz.write(body.last.to_s)
                 w_gz.close
-                body = wio.string
 
-                headers['Content-Length'] = body.length.to_s
+                body = wio.string
               end
 
               [status, headers, [body]]
