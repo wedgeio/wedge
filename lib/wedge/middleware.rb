@@ -107,7 +107,25 @@ class Wedge
                 @opal[:sprockets].call e
               end
             else
-              @opal[:server].call env
+              status, headers, body = @opal[:server].call env
+
+              headers['Content-Type'] = 'application/javascript; charset=UTF-8'
+
+              if Wedge.config.gzip_assets
+                require 'zlib'
+
+                headers['Content-Encoding'] = 'gzip'
+
+                wio = StringIO.new("")
+                w_gz = Zlib::GzipWriter.new(wio)
+                w_gz.write(body.last.to_s)
+                w_gz.close
+                body = wio.string
+
+                headers['Content-Length'] = body.length.to_s
+              end
+
+              [status, headers, [body]]
             end
           end
         else

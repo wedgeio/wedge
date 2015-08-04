@@ -138,17 +138,6 @@ unless RUBY_ENGINE == 'opal'
           if env['PATH_INFO'][@server.prefix]
             status, headers, body = @app.call env
 
-            headers = {
-              'Content-Type' => 'application/javascript; charset=UTF-8'
-            }.merge headers
-
-            if server.gzip
-              require 'zlib'
-
-              headers['Content-Encoding'] = 'gzip'
-              body = Zlib::Deflate.deflate body
-            end
-
             [status, headers.merge(@server.headers), [body]]
           else
             @app.call env
