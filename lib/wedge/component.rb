@@ -187,7 +187,7 @@ class Wedge
               # we want to remove the assets key from the call so we don't get
               # an error if they assets_key has changed and the user hasn't
               # refreshed the browser yet.
-              call_url = "#{Wedge.config.assets_key.present?? Wedge.assets_url.sub("#{Wedge.config.assets_key}/",'') : ''}/#{path_name}.call"
+              call_url = "#{Wedge.config.assets_key.present?? Wedge.assets_url.sub("#{Wedge.config.assets_key}/",'') : Wedge.assets_url}/#{path_name}.call"
 
               if block_given?
                 HTTP.post(call_url,
