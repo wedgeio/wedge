@@ -65,7 +65,7 @@ class Wedge
 
     def assets_url
       url = config.assets_url.gsub(%r{^(http(|s)://[^\/]*\/|\/)}, '/')
-      "#{url}#{config.cache_assets ? "/#{config.assets_key}" : ''}"
+      "#{url}#{config.cache_assets ? "/#{config.assets_key}" : ''}".gsub /\n/, ''
     end
 
     def assets_url_regex

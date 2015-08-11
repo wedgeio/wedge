@@ -119,7 +119,7 @@ class Wedge
 
                 wio = StringIO.new("")
                 w_gz = Zlib::GzipWriter.new(wio)
-                w_gz.write((body.instance_variable_get(:@body) || body).last.to_s)
+                w_gz.write((body.instance_variable_get(:@body) || body.last).to_s)
                 w_gz.close
 
                 body = wio.string
