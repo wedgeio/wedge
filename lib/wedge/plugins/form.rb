@@ -215,6 +215,7 @@ class Wedge
 
           subclass.instance_variable_set :@_accessors, @_accessors.deep_dup
           subclass.instance_variable_set :@_accessor_options, @_accessor_options.deep_dup
+          subclass.instance_variable_set :@_aliases, @_aliases.deep_dup
         end
 
         def model_alias alias_name, original_name
