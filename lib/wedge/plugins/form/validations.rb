@@ -75,8 +75,8 @@ class Wedge
           _errors.empty?
         end
 
-        def valid atts, options = {}
-          _set_atts atts, options
+        def valid atts
+          _set_atts atts
           valid?
         end
 
