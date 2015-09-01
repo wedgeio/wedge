@@ -75,8 +75,8 @@ class Wedge
           _errors.empty?
         end
 
-        def valid atts
-          _set_atts atts
+        def valid atts, options = {}
+          _set_atts atts, options
           valid?
         end
 
@@ -153,7 +153,7 @@ class Wedge
           att_options = _accessor_options[att].deep_dup
           form_name   = att_options.delete :form
 
-          f = wedge("#{form_name}_form", _atts.send(att).attributes, att_options)
+          f = wedge("#{form_name}_form", _atts._atts.send(att), att_options)
           assert(f.valid?, [att, f._errors])
         end
 

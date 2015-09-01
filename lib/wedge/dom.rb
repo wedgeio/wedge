@@ -47,6 +47,52 @@ class Wedge
     end
 
     unless RUBY_ENGINE == 'opal'
+      def prepend d
+        if n = node.children.first
+          n.add_previous_sibling d
+        else
+          node << d
+        end
+      end
+
+      def append d
+        if n = node.children.first
+      def display el, options = {}, &block
+        d = d.dom if d.is_a? Wedge::DOM
+
+        return if el.data 'wedge-popover'
+
+        el.data 'wedge-popover', true
+        el = el.to_n
+
+        options = {
+          content: 'Loading...',
+          position: 'right middle',
+          openOn: 'hover'
+        }.merge(options)
+
+        options[:classes] = "drop-theme-arrows #{options[:classes]}"
+
+        options = options.to_n
+
+        opts = `$.extend(options, { target: el[0] })`
+        drop = Native(`new Drop(opts)`)
+
+        block.call(Native(opts)) if block_given?
+
+        drop
+      end
+
+      def ajax el, options = {}, &block
+        options = { content: 'loading' }.merge options
+        display el, options, &block
+      end
+          n.add_next_sibling d
+        else
+          node << d
+        end
+      end
+
       def data key = false, value = false
         d = Hash[node.xpath("@*[starts-with(name(), 'data-')]").map{|a| [a.name, a.value]}]
 
