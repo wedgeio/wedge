@@ -75,7 +75,8 @@ class Wedge
       end
 
       def get_class(object)
-        object.class.method_defined?(:original_class_name) ? object.class.original_class_name : object.class.name
+        return object.class.original_class_name if object.class.method_defined?(:original_class_name)
+        [NilClass, Symbol].include?(object.class) ? object : object.class.name
       end
     end
 
