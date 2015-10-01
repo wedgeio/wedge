@@ -52,8 +52,7 @@ if RUBY_ENGINE == 'opal'
       #
       # @param item [String] the item to push in the history
       # @param data [Object] additional state to push
-      def push(item, data = nil)
-        data = `null` if data.nil?
+      def push(item, data = {})
 
         `History.pushState(jQuery.parseJSON(data.$to_json()), null, item)`
       end

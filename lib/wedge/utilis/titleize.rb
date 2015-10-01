@@ -22,7 +22,7 @@ module Titleize
     title = title.downcase unless title[/[[:lower:]]/]  # assume all-caps need fixing
 
     phrases(title).map do |phrase|
-      words = phrase.split
+      words = phrase.gsub(/_/, ' ').split
       words.map do |word|
         def word.capitalize
           # like String#capitalize, but it starts with the first letter

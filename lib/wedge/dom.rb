@@ -30,11 +30,7 @@ class Wedge
       if client?
         node = Wedge::DOM.new dom.find(string)
       elsif server?
-        if block_given?
-          node = Wedge::DOM.new dom.css(string)
-        else
-          node = Wedge::DOM.new dom.at(string)
-        end
+        node = Wedge::DOM.new dom.css(string)
       end
 
       if block_given?
@@ -47,50 +43,126 @@ class Wedge
     end
 
     unless RUBY_ENGINE == 'opal'
-      def prepend d
-        if n = node.children.first
-          n.add_previous_sibling d
+
+      %w'content inner_html'.each do |meth|
+        define_method "#{meth}=" do |cont|
+          if node.is_a? Nokogiri::XML::NodeSet
+            node.each { |n| n.send("#{meth}=", cont) }
+          else
+            node.send "#{meth}=", cont
+          end
+        end
+      end
+
+      %w'add_child replace prepend_child'.each do |meth|
+        define_method meth do |*args|
+          if node.is_a? Nokogiri::XML::NodeSet
+            node.each { |n| n.send(meth, *args) }
+          else
+            node.send(meth, *args)
+          end
+        end
+      end
+
+      def []= key, value
+        if node.is_a? Nokogiri::XML::NodeSet
+          node.each { |n| n[key] = value }
+        else
+          node[key] = value
+        end
+      end
+
+      def << d
+        if node.is_a? Nokogiri::XML::NodeSet
+          node.each { |n| n << d }
         else
           node << d
+        end
+      end
+
+      # def prepend d
+      #   if n = node.children.first
+      #     n.add_previous_sibling d
+      #   else
+      #     node << d
+      #   end
+      # end
+
+      def prepend d
+        if node.is_a? Nokogiri::XML::NodeSet
+          node.each do |n|
+            if nn = n.children.first
+              nn.add_previous_sibling d
+            else
+              nn << d
+            end
+          end
+        else
+          if n = node.children.first
+            n.add_previous_sibling d
+          else
+            node << d
+          end
         end
       end
 
       def append d
-        if n = node.children.first
-      def display el, options = {}, &block
-        d = d.dom if d.is_a? Wedge::DOM
-
-        return if el.data 'wedge-popover'
-
-        el.data 'wedge-popover', true
-        el = el.to_n
-
-        options = {
-          content: 'Loading...',
-          position: 'right middle',
-          openOn: 'hover'
-        }.merge(options)
-
-        options[:classes] = "drop-theme-arrows #{options[:classes]}"
-
-        options = options.to_n
-
-        opts = `$.extend(options, { target: el[0] })`
-        drop = Native(`new Drop(opts)`)
-
-        block.call(Native(opts)) if block_given?
-
-        drop
-      end
-
-      def ajax el, options = {}, &block
-        options = { content: 'loading' }.merge options
-        display el, options, &block
-      end
-          n.add_next_sibling d
+        if node.is_a? Nokogiri::XML::NodeSet
+          node.each do |n|
+            if nn = n.children.last
+              nn.add_next_sibling d
+            else
+              nn << d
+            end
+          end
         else
-          node << d
+          if n = node.children.last
+            n.add_next_sibling d
+          else
+            node.content << d
+          end
         end
+      end
+
+      def hide
+        if node.is_a? Nokogiri::XML::NodeSet
+          node.each do |n|
+            DOM.new(n).style 'display', 'none'
+          end
+        else
+          node.style 'display', 'none'
+        end
+
+        node
+      end
+
+      def style *args
+        style_object = DOM.new(node).styles
+
+        if args.length == 1
+          style_object[args.first]
+        else
+          style_object[args.first] = args.last
+          node['style'] = style_object.map { |k, v| [k, v].join(': ') }.join('; ')
+        end
+      end
+
+      def styles
+        style_array = node['style'].to_s.
+          split(';').
+          reject { |s| s.strip.empty? }.
+          map do |s|
+            parts = s.split(':', 2)
+            return nil if parts.nil?
+            return nil if parts.length != 2
+            return nil if parts.any? { |s| s.nil? }
+            [parts[0].strip, parts[1].strip]
+          end.
+          reject { |s| s.empty? }
+        style_object = {}
+        style_array.each { |key, value| style_object[key] = value }
+
+        style_object
       end
 
       def data key = false, value = false
@@ -106,24 +178,44 @@ class Wedge
       end
 
       def val value
-        node.content = value
+        if node.is_a? Nokogiri::XML::NodeSet
+          node.each { |n| n.content = value }
+        else
+          node.content = value
+        end
       end
 
       def add_class classes
         classes = (classes || '').split ' ' unless classes.is_a? Array
-        new_classes =  ((node.attr('class') || '').split(' ') << classes).uniq.join(' ')
-        node['class'] = new_classes
+        if node.is_a? Nokogiri::XML::NodeSet
+          node.each do |n|
+            new_classes =  ((n.attr('class') || '').split(' ') << classes).uniq.join(' ')
+            n['class'] = new_classes
+          end
+        else
+          new_classes =  ((node.attr('class') || '').split(' ') << classes).uniq.join(' ')
+          node['class'] = new_classes
+        end
       end
 
       def remove_class classes
         classes = (classes || '').split ' ' unless classes.is_a? Array
-        (node.attr('class') || '').split(' ').reject { |n| n =~ /active|asc|desc/i }.join(' ')
+
+        if node.is_a? Nokogiri::XML::NodeSet
+          node.each { |n| n['class'] = (n.attr('class') || '').split(' ').reject { |c| classes.include? c }.join(' ') }
+        else
+          node['class'] = (node.attr('class') || '').split(' ').reject { |c| classes.include? c }.join(' ')
+        end
       end
 
       def attr key, value = false
         if value
           value = value.join ' ' if value.is_a? Array
-          node[key] = value
+          if node.is_a? Nokogiri::XML::NodeSet
+            node.each { |n| n[key] = value }
+          else
+            node[key] = value
+          end
         else
           super key
         end
@@ -132,13 +224,19 @@ class Wedge
 
     def html= content
       if server?
-        node.inner_html = content
+        if node.is_a? Nokogiri::XML::NodeSet
+          node.each { |n| n.inner_html = content }
+        else
+          node.inner_html = content
+        end
       else
         content = content.dom if content.is_a? Wedge::DOM
         node.html content
       end
 
       node
+    rescue
+      binding.pry
     end
 
     if RUBY_ENGINE == 'opal'

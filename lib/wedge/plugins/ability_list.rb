@@ -71,7 +71,11 @@ class Wedge
     private
 
       def get_class(object)
-        [NilClass, Symbol, Class].include?(object.class) ? object : object.class
+        if object.class.method_defined?(:original_class_name)
+          object.class.original_class_name
+        else
+          [NilClass, Symbol, Class].include?(object.class) ? object : object.class
+        end
       end
     end
 
