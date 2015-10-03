@@ -10,6 +10,7 @@ class Wedge
         end
 
         keys = options.delete(:keys) || (_options[:key] ? [_options[:key]] : [])
+        options[:position] ||= :before
 
         if extra_errors = options.delete(:errors)
           extra_errors.each do |key, value|
@@ -44,7 +45,7 @@ class Wedge
             field_error_dom.html _error_name(key, error.first)
 
             field = dom.find("[name='#{name}']")
-            field.before field_error_dom.dom
+            field.send(options[:position], field_error_dom.dom)
           end
         end
       end
