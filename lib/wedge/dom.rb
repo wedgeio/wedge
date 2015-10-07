@@ -224,6 +224,9 @@ class Wedge
 
     def html= content
       if server?
+        # if the value is nil nokogiri will not update the dom
+        content = '' if content.nil?
+
         if node.is_a? Nokogiri::XML::NodeSet
           node.each { |n| n.inner_html = content }
         else
@@ -257,6 +260,9 @@ class Wedge
     end
 
     def html content = false
+      # if the value is nil nokogiri will not update the dom
+      content = '' if content.nil?
+
       if !content
         if server?
           node.inner_html

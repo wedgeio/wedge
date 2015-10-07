@@ -18,7 +18,7 @@ class Wedge
       # Declares that the owner can perform `verb` on `class`.
       def can(verb, klass=nil, columns=[], &block)
         columns = [columns] unless columns.is_a? Array
-        rules << [true, verb, get_class_name(klass), columns, block]
+        rules << [true, verb, get_class(klass), columns, block]
       end
 
       # Inverse of `can`.
@@ -71,12 +71,16 @@ class Wedge
     private
 
       def get_class_name(klass)
-        [NilClass, Symbol].include?(klass.class) ? klass : klass.name
+        if !klass.is_a?(Symbol) && klass.method_defined?(:original_class_name)
+          klass.original_class_name
+        else
+          [NilClass, Symbol].include?(klass.class) ? klass : klass.name
+        end
       end
 
       def get_class(object)
-        if object.class.method_defined?(:original_class_name)
-          object.class.original_class_name
+        if object.class.method_defined?(:original_class)
+          object.class.original_class
         else
           [NilClass, Symbol, Class].include?(object.class) ? object : object.class
         end

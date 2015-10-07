@@ -272,6 +272,8 @@ class Wedge
       end
 
       def _set_atts atts
+        return unless atts
+
         atts.each do |key, val|
           # grab the original key if alias is given
           _atts_keys << (key = _aliases.invert[key] || key)
