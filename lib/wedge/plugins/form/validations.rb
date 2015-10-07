@@ -101,7 +101,7 @@ class Wedge
         # Hash of errors for each attribute in this model.
         def _errors
           @_errors ||= Hash.new do |hash, key|
-            data = _accessor_options[key].key?(:form) ? {} : []
+            data = _accessor_options[key] && _accessor_options[key].key?(:form) ? {} : []
             alias_key       = _aliases[key] || key
            _model_errors[alias_key] = hash[key] = data
           end
@@ -264,7 +264,7 @@ class Wedge
         def assert(value, error)
           value or begin
             name   = error.shift.to_s
-            atts   = _accessor_options[name][:atts] || false
+            atts   = _accessor_options[name] ? (_accessor_options[name][:atts] || false) : false
             error  = atts ? error.first.select {|k, _| atts.include?(k) } : error
             errors = _errors[name]
 
