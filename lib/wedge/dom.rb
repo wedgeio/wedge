@@ -173,7 +173,13 @@ class Wedge
         elsif key && !value
           d[key]
         else
-          node["data-#{key}"] = value
+          key = "data-#{key}"
+
+          if node.is_a? Nokogiri::XML::NodeSet
+            node.each { |n| n[key] = value }
+          else
+            node[key] = value
+          end
         end
       end
 
