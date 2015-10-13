@@ -71,7 +71,7 @@ class Wedge
     private
 
       def get_class_name(klass)
-        if !klass.is_a?(Symbol) && klass.method_defined?(:original_class_name)
+        if !klass.is_a?(Symbol) && klass.respond_to?(:original_class_name)
           klass.original_class_name
         else
           [NilClass, Symbol].include?(klass.class) ? klass : klass.name
@@ -79,7 +79,7 @@ class Wedge
       end
 
       def get_class(object)
-        if object.class.method_defined?(:original_class)
+        if object.class.respond_to?(:original_class)
           object.class.original_class
         else
           [NilClass, Symbol, Class].include?(object.class) ? object : object.class
