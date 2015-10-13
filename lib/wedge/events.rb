@@ -84,6 +84,7 @@ class Wedge
       when event[:name].to_s == 'ready'
         el = Element.find(event[:selector] != '' ? event[:selector] : 'body')
 
+        comp.instance_variable_set :@this, DOM[el]
         comp.instance_exec el, &event[:block]
       when event[:name].to_s == 'history_change'
         $window.history.change do |he|
@@ -132,6 +133,7 @@ class Wedge
 
           el.find(opts[:error_selector] || '.field-error').remove
 
+          comp.instance_variable_set :@this, DOM[el]
           comp.instance_exec form, evt.current_target, evt, &event[:block]
         end
       else
@@ -143,11 +145,13 @@ class Wedge
 
         Document.on(*args) do |evt|
           el = evt.current_target
+          comp.instance_variable_set :@this, DOM[el]
           comp.instance_exec el, evt, &event[:block]
         end
 
         if event[:name] =~ /ready/
           el = Element.find(event[:selector] != '' ? event[:selector] : 'body')
+          comp.instance_variable_set :@this, DOM[el]
           comp.instance_exec el, &event[:block]
         end
       end
