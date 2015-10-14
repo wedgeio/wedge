@@ -43,7 +43,6 @@ class Wedge
     end
 
     unless RUBY_ENGINE == 'opal'
-
       %w'content inner_html'.each do |meth|
         define_method "#{meth}=" do |cont|
           if node.is_a? Nokogiri::XML::NodeSet
@@ -61,6 +60,14 @@ class Wedge
           else
             node.send(meth, *args)
           end
+        end
+      end
+
+      def replace_with *args
+        if node.is_a? Nokogiri::XML::NodeSet
+          node.each { |n| n.replace(*args) }
+        else
+          node.replace(*args)
         end
       end
 
