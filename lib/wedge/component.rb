@@ -333,6 +333,20 @@ class Wedge
     end
     alias_method :function, :wedge_function
 
+    def wedge_method_url method, *args
+      call_url = "#{Wedge.config.assets_key.present?? Wedge.assets_url.sub("#{Wedge.config.assets_key}/",'') : Wedge.assets_url}/#{wedge_config.path}.call"
+
+      wedge_args = []
+      args.each do |arg|
+        wedge_args << "__wedge_args__[]=#{arg}"
+      end
+
+      wedge_args = (wedge_args.length > 0 ? "&#{wedge_args.join('&')}" : '')
+
+      "#{call_url}?__wedge_name__=#{wedge_config.name}&__wedge_method__=#{method}#{wedge_args}"
+    end
+    alias_method :method_url, :wedge_method_url
+
     def wedge_from_server?
       begin
         !(wedge_method_called == caller_locations(1,1)[0].label)
