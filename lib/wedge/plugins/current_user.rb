@@ -19,8 +19,15 @@ class Wedge
       end
 
       module InstanceMethods
-        def wedge_current_user
-          Store[:current_user] ||= Wedge[:current_user, wedge(:current_user_plugin).get_current_user]
+        def wedge_current_user &block
+          if block_given?
+            wedge(:current_user_plugin).get_current_user do |data|
+              block.call data
+              Store[:current_user] ||= Wedge[:current_user, data]
+            end
+          else
+            Store[:current_user] ||= Wedge[:current_user, wedge(:current_user_plugin).get_current_user]
+          end
         end
         alias_method :current_user, :wedge_current_user
       end
