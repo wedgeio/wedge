@@ -59,6 +59,7 @@ class Wedge
         options     = options.indifferent
         wedge_name   = options.delete :wedge_name
         wedge_method = options.delete :delete_method
+        options[:delete_id] = options[:delete_id].sub('/','')
 
         if wedge_name
           response.headers["Content-Type"] = 'application/json; charset=UTF-8'
@@ -209,7 +210,7 @@ class Wedge
           uploader_settings[:deleteFile] = {
             enabled: true,
             forceConfirm: true,
-            endpoint: "#{Wedge.assets_url}/wedge/plugins/uploader.call?__wedge_method__=delete&__wedge_args__=__wedge_data__&__wedge_name__=uploader_plugin",
+            endpoint: "#{Wedge.assets_url}/wedge/plugins/uploader.call?__wedge_method__=delete&__wedge_args__=__wedge_data__&__wedge_name__=uploader_plugin&delete_id=",
             params: options,
             customHeaders: {
               'X-CSRF-Token' => Element.find('head > meta[name="_csrf"]').attr('content'),
@@ -227,7 +228,6 @@ class Wedge
         if options[:resume_method]
           uploader_settings[:session] = {
             endpoint: "#{Wedge.assets_url}/wedge/plugins/uploader.call?__wedge_method__=resume&__wedge_args__=__wedge_data__&__wedge_name__=uploader_plugin",
-            # endpoint: "#{Wedge.assets_url}/app/components/#{options[:wedge_name]}.call?wedge_method=#{options[:resume_method]}&wedge_method_args=wedge_data&wedge_name=registration",
             params: options
           }
         end
