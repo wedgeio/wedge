@@ -37,9 +37,7 @@ class Wedge
           data = instance_exec(&Wedge[:current_user_plugin].config.block) || {}
 
           if from_client?
-            form          = Wedge[:current_user, data]
-            client_fields = config.settings[:client_fields]
-            form.attributes.select { |k, v| client_fields.include? k }
+            Wedge[:current_user, data].attributes
           else
             data
           end
