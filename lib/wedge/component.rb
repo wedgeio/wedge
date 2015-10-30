@@ -143,7 +143,6 @@ class Wedge
         if wedge_config.scope.respond_to?(method, true)
           wedge_config.scope.send method, *args, &block
         else
-          puts method
           super
         end
       end
@@ -187,7 +186,7 @@ class Wedge
               # we want to remove the assets key from the call so we don't get
               # an error if they assets_key has changed and the user hasn't
               # refreshed the browser yet.
-              call_url = "#{Wedge.config.assets_key.present?? Wedge.assets_url.sub("#{Wedge.config.assets_key}/",'') : Wedge.assets_url}/#{path_name}.call"
+              call_url = "#{Wedge.config.assets_key.present?? Wedge.assets_url.sub("/#{Wedge.config.assets_key}",'') : Wedge.assets_url}/#{path_name}.call"
 
               if block_given?
                 HTTP.post(call_url,
@@ -334,7 +333,7 @@ class Wedge
     alias_method :function, :wedge_function
 
     def wedge_method_url method, *args
-      call_url = "#{Wedge.config.assets_key.present?? Wedge.assets_url.sub("#{Wedge.config.assets_key}/",'') : Wedge.assets_url}/#{wedge_config.path}.call"
+      call_url = "#{Wedge.config.assets_key.present?? Wedge.assets_url.sub("/#{Wedge.config.assets_key}",'') : Wedge.assets_url}/#{wedge_config.path}.call"
 
       wedge_args = []
       args.each do |arg|

@@ -73,7 +73,7 @@ class Wedge
         assets_url = ::Wedge.assets_url.gsub(%r{^\/}, '')
         # # We also allow for no assets key so when we post server methods there
         # # isn't an error if the key has been changed since a browser refresh.
-        %r{(?:/|)(?:#{assets_url}|#{assets_url.sub("#{::Wedge.config.assets_key}/", '')})/(.*)\.(.*)$}
+        %r{(?:/|)(?:#{assets_url}|#{assets_url.sub("/#{::Wedge.config.assets_key}", '')})/(.*)\.(.*)$}
       end
     end
 

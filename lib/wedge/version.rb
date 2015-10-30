@@ -1,3 +1,3 @@
 class Wedge
-  VERSION = '0.1.74'
+  VERSION = '0.1.75'
 end
