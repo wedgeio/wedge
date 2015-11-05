@@ -99,9 +99,9 @@ class Wedge
         if node.is_a? Nokogiri::XML::NodeSet
           node.each do |n|
             if nn = n.children.first
-              nn.add_previous_sibling d
+              n.add_previous_sibling d
             else
-              nn << d
+              n << d
             end
           end
         else
@@ -119,7 +119,7 @@ class Wedge
             if nn = n.children.last
               nn.add_next_sibling d
             else
-              nn << d
+              n << d
             end
           end
         else
