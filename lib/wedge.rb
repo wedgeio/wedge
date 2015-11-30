@@ -203,7 +203,7 @@ class Wedge
     end
 
     # Return the opal javascript.
-    def javascript(path_name = 'wedge', options = {})
+    def javascript(path_name = 'wedge', options = {}, url = false)
       path_name = path_name.to_s
 
       if server?
@@ -216,13 +216,13 @@ class Wedge
         cache = options[:cache_assets]
 
         if !Wedge.config.debug
-          url = "#{Wedge.assets_url_with_host}/#{options[:path]}.js"
+          url ||= "#{Wedge.assets_url_with_host}/#{options[:path]}.js"
 
           `jQuery.ajax({ url: url, dataType: "script", cache: cache }).done(function() {`
             trigger_javascript_loaded path_name, options
            `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); })`
         else
-          url     = "#{Wedge.assets_url_with_host}/wedge/list_assets.call"
+          url   ||= "#{Wedge.assets_url_with_host}/wedge/list_assets.call"
           payload = { path_name: path_name}
           headers = {
             'X-CSRF-TOKEN' => Element.find('meta[name=_csrf]').attr('content'),

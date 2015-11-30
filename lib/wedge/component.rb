@@ -205,7 +205,11 @@ class Wedge
 
                     res = JSON.from_object(`response`)
 
-                    blk.call res[:body], res
+                    results = blk.call res[:body], res
+
+                    # Element.trigger 'wedge:call-finished'
+
+                    results
                 end
               else
                 data = {
@@ -377,9 +381,17 @@ class Wedge
       )
 
       compiled_opts = Base64.encode64 client_data.to_json
-      javascript = <<-JS
-        Wedge.javascript('#{config.path}', JSON.parse(Base64.decode64('#{compiled_opts}')))
-      JS
+
+      begin
+        javascript = <<-JS
+          Wedge.javascript('#{config.path}', JSON.parse(Base64.decode64('#{compiled_opts}')), '#{javascript_path(config.path)}')
+        JS
+      rescue
+        javascript = <<-JS
+          Wedge.javascript('#{config.path}', JSON.parse(Base64.decode64('#{compiled_opts}')))
+        JS
+      end
+
       "<script>#{Opal.compile(javascript)}</script>"
     end
     alias_method :javscript, :wedge_javascript
