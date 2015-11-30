@@ -222,7 +222,7 @@ class Wedge
             trigger_javascript_loaded path_name, options
            `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); })`
         else
-          url   ||= "#{Wedge.assets_url_with_host}/wedge/list_assets.call"
+          url     = "#{Wedge.assets_url_with_host}/wedge/list_assets.call"
           payload = { path_name: path_name}
           headers = {
             'X-CSRF-TOKEN' => Element.find('meta[name=_csrf]').attr('content'),
