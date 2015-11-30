@@ -79,7 +79,7 @@ class Wedge
       end
 
       def get_class(object)
-        if object.class.respond_to?(:original_class)
+        if object.class.respond_to?(:original_class) && object.class.original_class
           object.class.original_class
         else
           [NilClass, Symbol, Class].include?(object.class) ? object : object.class
