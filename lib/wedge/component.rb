@@ -1,4 +1,4 @@
-require 'wedge/require'
+# require 'wedge/require'
 
 class Wedge
   class Component
