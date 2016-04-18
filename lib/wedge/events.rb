@@ -98,9 +98,7 @@ class Wedge
           params = {}
 
           # loop through all the forum values
-          el.serialize_array.each do |row|
-            field, _ = row
-
+          el.serialize_array.each do |field|
             # we need to make it native to access it like ruby
             field    = Native(field)
             name     = field['name']

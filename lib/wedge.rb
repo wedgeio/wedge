@@ -107,7 +107,7 @@ class Wedge
           scripts << %{<script src="#{url}"></script>}
         end
 
-        scripts << %{<script>#{Wedge::Opal::Processor.load_asset_code(sprockets, name)}</script>}
+        scripts << %{<script>#{Wedge::Opal::Sprockets.load_asset(name, sprockets)}</script>}
 
         scripts.join "\n"
       end
@@ -162,7 +162,8 @@ class Wedge
     # @param name [String, Symbol, #to_s] The unique name given to a component.
     # @return [Wedge::Component#method] Last line of the method called.
     def [](*args, &block)
-      config.component_class[args.shift].wedge_new self, *args, &block
+      name = args.shift
+      config.component_class[name.to_sym].wedge_new self, *args, &block
     end
 
     %w(store scope).each do |meth|
@@ -198,6 +199,8 @@ class Wedge
         @append_paths ||= begin
           Wedge::Opal.append_path method(:assets_url).source_location.first.sub('/wedge.rb', '')
           Wedge::Opal.append_path "#{Dir.pwd}/#{config.app_dir}"
+
+          true
         end
       end
     end

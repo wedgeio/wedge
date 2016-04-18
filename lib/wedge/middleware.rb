@@ -74,7 +74,7 @@ class Wedge
             if wedge_path == 'wedge/list_assets'
               res = {
                 urls: Wedge.get_asset_urls(data[:path_name]),
-                code: Wedge::Opal::Processor.load_asset_code(Wedge.config.opal[:server].sprockets, data[:path_name])
+                code: Wedge::Opal::Sprockets.load_asset(data[:path_name], Wedge.config.opal[:server].sprockets)
               }
             elsif method_args == '__wedge_data__' && data
               method_args = [data]
