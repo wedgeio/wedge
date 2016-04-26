@@ -1,7 +1,9 @@
-require 'opal'
-require 'opal-jquery'
+unless RUBY_ENGINE == 'opal'
+  require 'opal'
+  Opal.append_path File.expand_path('../', __FILE__).untaint
+end
+
 require 'wedge/version'
-require 'wedge/opal'
 require 'wedge/utilis/indifferent_hash'
 require 'wedge/utilis/hash'
 require 'wedge/utilis/blank'
@@ -12,6 +14,7 @@ require 'wedge/utilis/element'
 require 'base64'
 require 'forwardable'
 unless RUBY_ENGINE == 'opal'
+  require 'wedge/opal'
   require 'nokogiri'
   require 'wedge/utilis/nokogiri'
   require 'wedge/middleware'
@@ -22,7 +25,7 @@ require 'wedge/dom'
 require 'wedge/events'
 require 'wedge/config'
 require 'wedge/component'
-require 'wedge/railtie' if RUBY_ENGINE == 'RUBY' && defined?(Rails::Railtie)
+require 'wedge/railtie' if RUBY_ENGINE != 'opal' && defined?(Rails::Railtie)
 
 class Wedge
   include Methods
@@ -214,35 +217,7 @@ class Wedge
           build(path_name, options).to_s
         end
       else
-        # note: ?body=1 is a hack for sprockets to make source maps work # correctly.
-        # url   = "#{url}?body=1" if Wedge.config.debug
-        cache = options[:cache_assets]
-
-        if !Wedge.config.debug
-          url ||= "#{Wedge.assets_url_with_host}/#{options[:path]}.js"
-
-          `jQuery.ajax({ url: url, dataType: "script", cache: cache }).done(function() {`
-            trigger_javascript_loaded path_name, options
-           `}).fail(function(jqxhr, settings, exception){ window.console.log(exception); })`
-        else
-          url     = "#{Wedge.assets_url_with_host}/wedge/list_assets.call"
-          payload = { path_name: path_name}
-          headers = {
-            'X-CSRF-TOKEN' => Element.find('meta[name=_csrf]').attr('content'),
-          }
-          HTTP.post(url, dataType: 'json', headers: headers, payload:  payload) do |response|
-            res  = JSON.from_object(`response`)
-
-            res[:body][:urls].each do |url|
-              `jQuery.ajax({url: url, dataType: "script", cache: cache, async: false})`
-            end
-
-            code = res[:body][:code]
-            `jQuery.globalEval(code);`
-
-            trigger_javascript_loaded path_name, options
-          end
-        end
+        trigger_javascript_loaded path_name, options
       end
     end
 

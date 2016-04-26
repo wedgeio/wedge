@@ -150,7 +150,7 @@ class Wedge
       def wedge_on_server(m = false, &block)
         m ||= Module.new(&block)
 
-        if server?
+        if RUBY_ENGINE != 'opal'
           yield if block_given?
 
           m.public_instance_methods(false).each do |meth|
