@@ -1,3 +1,9 @@
+if RUBY_ENGINE == 'opal'
+  class Element
+    alias_native :replace_with, :replaceWith
+  end
+end
+
 class Wedge
   class DOM
     include Methods
