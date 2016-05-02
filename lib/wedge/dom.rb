@@ -1,6 +1,7 @@
 if RUBY_ENGINE == 'opal'
   class Element
     alias_native :replace_with, :replaceWith
+    alias_native :remove_data, :removeData
   end
 end
 
